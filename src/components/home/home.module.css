@@ -44,7 +44,7 @@
   right: -46%;
   bottom: -18%;
   border-radius: 50%;
-  background: var(--vermilion);
+  background: var(--blush);
   opacity: 0.92;
 }
 
@@ -74,6 +74,7 @@
 }
 
 .coverTitle {
+  font-family: var(--f-cover);
   margin: 7vh 0 0;
   margin-right: calc(-1 * var(--gutter) - 30px);
   font-size: clamp(98px, 34vw, 172px);
@@ -87,7 +88,7 @@
 }
 
 .coverTitle span:nth-child(2) {
-  color: var(--vermilion);
+  color: var(--blush);
   padding-left: 0.42em;
 }
 
@@ -134,7 +135,7 @@
 .newTag {
   flex: none;
   padding: 2px 6px;
-  background: var(--vermilion);
+  background: var(--blush);
   color: var(--ink);
   font-size: 10px;
   font-weight: 700;
@@ -326,7 +327,7 @@
 .togetherWord {
   margin: 0;
   font-size: clamp(76px, 26vw, 128px);
-  color: var(--vermilion);
+  color: var(--cobalt);
   margin-right: -30px;
 }
 
@@ -340,7 +341,7 @@
 .band p {
   margin: 0;
   font-size: clamp(40px, 13vw, 60px);
-  color: var(--vermilion);
+  color: var(--blush);
   line-height: 1;
 }
 
@@ -403,8 +404,8 @@
 }
 
 .stop[data-current] {
-  fill: var(--vermilion);
-  stroke: var(--vermilion);
+  fill: var(--blush);
+  stroke: var(--blush-ink);
 }
 
 .stopLabel {
@@ -420,16 +421,16 @@
 }
 
 .stopLabel[data-current] {
-  fill: var(--vermilion-ink);
+  fill: var(--blush-ink);
 }
 
 .here {
-  fill: var(--vermilion);
+  fill: var(--blush-ink);
 }
 
 .herePulse {
   fill: none;
-  stroke: var(--vermilion);
+  stroke: var(--blush-ink);
   stroke-width: 1;
   transform-origin: center;
   transform-box: fill-box;
@@ -527,14 +528,15 @@
 .blocks {
   margin-top: 18px;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(9px, 1fr));
-  gap: 4px 3px;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 4px;
 }
 
 .block {
   display: inline-block;
-  height: 22px;
+  aspect-ratio: 1;
   border: 1px solid var(--paper-3);
+  border-radius: 3px;
   background: transparent;
 }
 
@@ -544,12 +546,12 @@
 }
 
 .block[data-kind="together"] {
-  background: var(--vermilion-tint);
-  border-color: var(--vermilion);
+  background: var(--blush-tint);
+  border-color: var(--blush-ink);
 }
 
 .block[data-kind="together"][data-past] {
-  background: var(--vermilion);
+  background: var(--blush);
 }
 
 .block[data-kind="travel"] {
@@ -586,8 +588,8 @@
 }
 
 .legend .block {
-  width: 9px;
-  height: 14px;
+  width: 12px;
+  height: 12px;
 }
 
 .apartFoot {
@@ -646,7 +648,7 @@
 .thinkRing {
   position: absolute;
   inset: -4px;
-  border: 2px solid var(--vermilion);
+  border: 2px solid var(--blush-ink);
   border-radius: 50%;
   animation: ring 0.9s var(--ease) forwards;
   pointer-events: none;
@@ -682,7 +684,137 @@
 }
 
 .mood {
+  position: relative;
   margin-top: var(--s8);
+  isolation: isolate;
+}
+
+/* With a background photo: a dark, softly blurred stage with light text. */
+.mood[data-photo] {
+  margin-left: calc(-1 * var(--gutter));
+  margin-right: calc(-1 * var(--gutter));
+  padding: 28px var(--gutter) 22px;
+  overflow: hidden;
+  border-radius: 14px;
+  color: var(--paper);
+  background: var(--ink);
+}
+
+.moodBg {
+  position: absolute;
+  inset: -40px;
+  z-index: -2;
+  transition: filter 1.4s var(--ease);
+}
+
+.moodBg img,
+.moodBg > span {
+  width: 100%;
+  height: 100%;
+}
+
+.mood[data-photo]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(to bottom, rgba(14, 12, 24, 0.55), rgba(14, 12, 24, 0.25) 45%, rgba(14, 12, 24, 0.6));
+}
+
+.mood[data-photo] .moodTitle span {
+  color: var(--blush);
+}
+
+.mood[data-photo] .moodTheirs {
+  border-color: rgba(243, 238, 228, 0.35);
+}
+
+.mood[data-photo] .moodWhen,
+.mood[data-photo] .moodFoot {
+  color: rgba(243, 238, 228, 0.82);
+}
+
+.mood[data-photo] .moodBtn {
+  background: rgba(243, 238, 228, 0.88);
+  border-color: transparent;
+  color: var(--ink);
+}
+
+.mood[data-photo] .moodBtn[aria-pressed="true"] {
+  background: var(--cobalt);
+  color: var(--paper);
+}
+
+.moodBgNote {
+  margin: 10px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.bgManager {
+  margin-top: var(--s5);
+  padding-top: 14px;
+  border-top: 1px dashed var(--line);
+}
+
+.bgRow {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 8px 0 4px;
+}
+
+.bgItem {
+  position: relative;
+  flex: none;
+}
+
+.bgThumb,
+.bgAdd {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--paper-2);
+}
+
+.bgThumb[aria-pressed="true"] {
+  outline: 2px solid var(--cobalt);
+  outline-offset: 2px;
+}
+
+.bgRemove {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 14px;
+  line-height: 1;
+}
+
+.bgAdd {
+  flex: none;
+  gap: 0;
+  align-content: center;
+  border-style: dashed;
+  font-size: 11px;
+  color: var(--ink-2);
+}
+
+.bgAdd > span:first-child {
+  font-family: var(--f-serif);
+  font-size: 22px;
+  line-height: 1;
+  color: var(--cobalt);
 }
 
 .moodTitle {
@@ -701,7 +833,7 @@
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--vermilion-ink);
+  color: var(--blush-ink);
 }
 
 .moodTheirs {

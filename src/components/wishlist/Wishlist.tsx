@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { ITEM_TYPES } from "@/config/app";
 import { useSpace } from "@/lib/space";
 import { useUI } from "../ui/ui-state";
-import { ItemCard, ItemRow } from "./ItemCard";
+import { ItemCard, ItemRow, packBento } from "./ItemCard";
 import s from "./wishlist.module.css";
 
 type View = "board" | "list";
@@ -15,6 +15,7 @@ export function Wishlist() {
   const { open } = useUI();
   const [place, setPlace] = useState("");
   const [type, setType] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
   const [view, setView] = useState<View>(() => {
     try {
       return localStorage.getItem(VIEW_KEY) === "list" ? "list" : "board";
@@ -51,6 +52,7 @@ export function Wishlist() {
     [items, place, type],
   );
   const filtering = Boolean(place || type);
+  const slots = useMemo(() => packBento(filtered), [filtered]);
   const visitedCount = items.filter((i) => i.visited).length;
 
   return (
@@ -73,6 +75,20 @@ export function Wishlist() {
           <button type="button" className={`btn btn-primary ${s.add}`} onClick={() => open({ kind: "item-form" })}>
             <span aria-hidden>+</span> Add an idea
           </button>
+          <button
+            type="button"
+            className={s.filterBtn}
+            aria-expanded={showFilters}
+            aria-controls="wishlist-filters"
+            aria-label={`Filters${filtering ? ` (${Number(Boolean(place)) + Number(Boolean(type))} active)` : ""}`}
+            data-active={filtering || undefined}
+            onClick={() => setShowFilters((v) => !v)}
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden>
+              <path d="M1 3h14M4 8h8M6.5 13h3" stroke="currentColor" strokeWidth="1.6" />
+            </svg>
+            {filtering && <span className={s.filterCount}>{Number(Boolean(place)) + Number(Boolean(type))}</span>}
+          </button>
           <div className={s.toggle} role="group" aria-label="View">
             <button type="button" aria-pressed={view === "board"} onClick={() => changeView("board")} aria-label="Board view">
               <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden>
@@ -90,31 +106,33 @@ export function Wishlist() {
           </div>
         </div>
 
-        <div className={s.filters}>
-          <label className={s.filter}>
-            <span className="sr-only">Filter by place</span>
-            <select className="select" value={place} onChange={(e) => setPlace(e.target.value)}>
-              <option value="">All places</option>
-              {placeOptions.map(([id, p]) => (
-                <option key={id} value={id}>
-                  {p.name} ({p.n})
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className={s.filter}>
-            <span className="sr-only">Filter by type</span>
-            <select className="select" value={type} onChange={(e) => setType(e.target.value)}>
-              <option value="">All types</option>
-              {ITEM_TYPES.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.label}
-                  {typeCounts.get(t.id) ? ` (${typeCounts.get(t.id)})` : ""}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
+        {showFilters && (
+          <div id="wishlist-filters" className={s.filters}>
+            <label className={s.filter}>
+              <span className="sr-only">Filter by place</span>
+              <select className="select" value={place} onChange={(e) => setPlace(e.target.value)}>
+                <option value="">All places</option>
+                {placeOptions.map(([id, p]) => (
+                  <option key={id} value={id}>
+                    {p.name} ({p.n})
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className={s.filter}>
+              <span className="sr-only">Filter by type</span>
+              <select className="select" value={type} onChange={(e) => setType(e.target.value)}>
+                <option value="">All types</option>
+                {ITEM_TYPES.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.label}
+                    {typeCounts.get(t.id) ? ` (${typeCounts.get(t.id)})` : ""}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+        )}
         {filtering && (
           <p className={s.filterNote}>
             Showing {filtered.length} of {items.length}.{" "}
@@ -154,10 +172,12 @@ export function Wishlist() {
           </button>
         </div>
       ) : view === "board" ? (
-        <div className={s.bento}>
-          {filtered.map((it) => (
-            <ItemCard key={it.id} item={it} onOpen={() => open({ kind: "item", id: it.id })} />
-          ))}
+        <div className={s.bentoWrap}>
+          <div className={s.bento}>
+            {filtered.map((it) => (
+              <ItemCard key={it.id} item={it} slot={slots.get(it.id)!} onOpen={() => open({ kind: "item", id: it.id })} />
+            ))}
+          </div>
         </div>
       ) : (
         <div className={s.list}>

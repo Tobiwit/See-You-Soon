@@ -70,11 +70,19 @@ Create a free app at <https://unsplash.com/developers>, put its **Access Key** i
 
 ## 4. What's configurable (in the app, Settings)
 
+Only **Toby** sees and can change the trip settings below (and the mood-section backgrounds). Alex's Settings only show his account, the Home Screen guide and his own notifications. This is enforced in `firestore.rules` (`ownerKey()`), not just hidden in the UI; the owner is set in `src/config/app.ts` (`OWNER`).
+
 Cover title · cover photo · first day apart (seeded **10 Oct**, from the earlier prototype) · reunion date + time (seeded **7 Dec, 12:00** — also from the prototype, please confirm) · reunion place · trip start/end · timezone (default `Asia/Ho_Chi_Minh`; every “today” and the countdown use it) · mood fade time · the journey route (seeded with country-level stops Uzbekistan → Japan → South Korea → Vietnam — add the real cities via search).
+
+Until Alex shares a location for the first time, the map shows him in **Tokyo, Japan** (Uzbekistan done), labelled “until Alex shares an update” — change `DEFAULT_TRAVELLER_LOCATION` in `src/config/app.ts` if needed.
+
+**State of mind backgrounds:** Toby adds photos under the mood selector (“Backgrounds · only you can change these”) and taps one to make it active. The photo is heavily blurred when nobody has set a mood and sharpens with the hotter of the two current moods (never fully sharp).
 
 The arrival (“Toby arrives in Hanoi”, 7 Dec) and departure (“Both leave from Ho Chi Minh City”, 20 Dec) anchors are editable from the Planner but can't be deleted. No flight details were invented — add them in the anchor's note.
 
-Code-level settings live in `src/config/app.ts` (names, who the traveller is, wishlist categories, mood scale) and design tokens in `src/app/globals.css` (`--cobalt` primary, `--vermilion` secondary, paper neutrals). If you add a wishlist category, also add it to `itemTypes()` in `firestore.rules`.
+Code-level settings live in `src/config/app.ts` (names, who the traveller is, wishlist categories, mood scale) and design tokens in `src/app/globals.css` (`--cobalt` primary, `--blush` secondary, `--blush-ink` for small pink text, paper neutrals).
+
+**Fonts:** Fraunces (soft/wonky, display), Newsreader (editorial), Be Vietnam Pro (interface) — all with Vietnamese support. If you have a licence for **Magilio**, convert it to `Magilio.woff2` and put it in `public/fonts/`; the cover title then uses it automatically (Magilio has no Vietnamese accents, so it is only used for the English cover title). If you add a wishlist category, also add it to `itemTypes()` in `firestore.rules`.
 
 ## 5. Local development
 
@@ -84,7 +92,7 @@ Uses the Firebase emulators (needs Java 11+), so no real project is touched.
 npm install
 cp .env.example .env.local   # then use the emulator values below
 npm run emulators            # terminal 1: Auth :9099 + Firestore :8080 with firestore.rules
-npm run seed:emulator        # terminal 2: creates alex@/toby@example.com (password reunion-test-1) + clearly marked SAMPLE content
+npm run seed:emulator        # terminal 2: creates the two accounts from .env.local in the emulator (password reunion-test-1) + clearly marked SAMPLE content
 npm run dev                  # http://localhost:3000
 ```
 `.env.local` for the emulators:
@@ -95,7 +103,7 @@ NEXT_PUBLIC_FIREBASE_PROJECT_ID=demo-sys
 NEXT_PUBLIC_FIREBASE_APP_ID=1:000000000000:web:demo
 NEXT_PUBLIC_FIREBASE_EMULATORS=1
 FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099
-ALEX_EMAIL=alex@example.com
+ALEX_EMAIL=alex@example.com   # must match the emails in firestore.rules
 TOBY_EMAIL=toby@example.com
 ```
 Checks: `npm run typecheck`, `npm run lint`, `npm run build`. `npm run icons` regenerates the Home Screen icons.
@@ -126,4 +134,5 @@ Checks: `npm run typecheck`, `npm run lint`, `npm run build`. `npm run icons` re
 7. Planner: drag an idea from the drawer onto a day (long-press) and tap-assign another; both phones show the same days; the drawer count drops.
 8. Add travel Hanoi → Hội An on 11 Dec → “Now in Hội An” appears before 11 Dec on both phones.
 9. Both edit the same idea at once → the second save shows the conflict notice.
-10. Airplane mode → the app still opens with the last data and says it's offline; a postcard waits (“Waiting for connection…”) and sends when back online.
+10. Alex opens Settings → only account, Home Screen guide and notifications; no dates, cover or route editing, and no background controls in the mood section.
+11. Airplane mode → the app still opens with the last data and says it's offline; a postcard waits (“Waiting for connection…”) and sends when back online.

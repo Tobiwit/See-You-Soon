@@ -1,8 +1,15 @@
 /* ==================================================================
    See You Soon — design tokens
    One strong primary (electric ultramarine), one contrasting secondary
-   (vermilion), on warm paper. Change the palette here only.
+   (blush pink), on warm paper. Change the palette here only.
    ================================================================== */
+/* Optional licensed cover face — only loads if public/fonts/Magilio.woff2 exists. */
+@font-face {
+  font-family: "Magilio";
+  src: url("/fonts/Magilio.woff2") format("woff2");
+  font-display: swap;
+}
+
 :root {
   --paper: #f3eee4;
   --paper-2: #e9e2d4;
@@ -15,14 +22,16 @@
   --cobalt: #2236e0;
   --cobalt-deep: #1626a8;
   --cobalt-tint: #dfe2f8;
-  --vermilion: #ff5a1f;
-  --vermilion-ink: #c43c0b; /* AA-safe for small text on paper */
-  --vermilion-tint: #ffdccc;
+  --blush: #f4b9c8;
+  --blush-ink: #b03a5b; /* deeper rose: AA-safe for small text and thin lines on paper */
+  --blush-tint: #fbe3e9;
 
   --danger: #b3261e;
   --ok: #2b6a3f;
 
-  --f-display: var(--font-display), "Cooper Black", Georgia, serif;
+  /* Optional: drop a licensed Magilio.woff2 into public/fonts/ to use it for the cover title. */
+  --f-cover: "Magilio", var(--font-display), Georgia, serif;
+  --f-display: var(--font-display), Georgia, serif;
   --f-serif: var(--font-serif), "Iowan Old Style", Georgia, serif;
   --f-sans: var(--font-sans), -apple-system, "Helvetica Neue", Arial, sans-serif;
 
@@ -105,7 +114,7 @@ a {
 }
 
 ::selection {
-  background: var(--vermilion-tint);
+  background: var(--blush-tint);
 }
 
 .sr-only {
@@ -134,9 +143,10 @@ a {
 
 .display {
   font-family: var(--f-display);
-  font-weight: 400;
+  font-weight: 600;
+  font-variation-settings: "SOFT" 100, "WONK" 1, "opsz" 144;
   line-height: 0.92;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
 }
 
 .serif {
@@ -191,8 +201,8 @@ a {
 }
 
 .btn-accent {
-  background: var(--vermilion);
-  border-color: var(--vermilion);
+  background: var(--blush);
+  border-color: var(--blush);
   color: var(--ink);
 }
 
@@ -249,7 +259,7 @@ a {
 }
 
 .field .req {
-  color: var(--vermilion-ink);
+  color: var(--blush-ink);
   letter-spacing: 0;
   text-transform: none;
   font-weight: 500;
@@ -312,8 +322,8 @@ a {
 }
 
 .notice.warn {
-  border-color: var(--vermilion);
-  background: var(--vermilion-tint);
+  border-color: var(--blush-ink);
+  background: var(--blush-tint);
 }
 
 .notice.error {

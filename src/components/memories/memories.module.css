@@ -85,7 +85,7 @@
   align-items: flex-end;
   padding: 14px;
   background: var(--cobalt);
-  color: var(--vermilion);
+  color: var(--blush);
 }
 
 .cardType :global(.display) {
@@ -98,7 +98,7 @@
   top: 10px;
   left: 10px;
   padding: 3px 8px;
-  background: var(--vermilion);
+  background: var(--blush);
   color: var(--ink);
   font-size: 10px;
   font-weight: 700;
@@ -234,10 +234,10 @@
   place-items: center;
   width: 58px;
   height: 70px;
-  border: 2px dashed var(--vermilion);
+  border: 2px dashed var(--blush-ink);
   outline: 4px solid #fbf8f2;
-  background: var(--vermilion-tint);
-  color: var(--vermilion-ink);
+  background: var(--blush-tint);
+  color: var(--blush-ink);
 }
 
 .stamp :global(.display) {
@@ -404,7 +404,7 @@
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--vermilion-ink);
+  color: var(--blush-ink);
 }
 
 .entry {

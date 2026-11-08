@@ -27,13 +27,19 @@ export function Sheet({
 }) {
   const panel = useRef<HTMLDivElement>(null);
   const titleId = useId();
+  // Callers often pass an inline onClose; keep the latest one in a ref so the
+  // mount effect below runs once (re-running it stole focus on every keystroke).
+  const closeRef = useRef(onClose);
+  useEffect(() => {
+    closeRef.current = onClose;
+  });
 
   useEffect(() => {
     const prev = document.activeElement as HTMLElement | null;
     document.body.classList.add("sheet-open");
     panel.current?.focus({ preventScroll: true });
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") closeRef.current();
       if (e.key === "Tab" && panel.current) {
         const f = panel.current.querySelectorAll<HTMLElement>(
           'button:not([disabled]), [href], input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])',
@@ -56,10 +62,10 @@ export function Sheet({
       document.body.classList.remove("sheet-open");
       prev?.focus?.({ preventScroll: true });
     };
-  }, [onClose]);
+  }, []);
 
   return (
-    <div className={s.overlay} onClick={onClose}>
+    <div className={s.overlay} onClick={() => closeRef.current()}>
       <div
         ref={panel}
         className={`${s.panel} ${full ? s.full : ""} ${tone === "ink" ? s.inkPanel : ""}`}
@@ -73,7 +79,7 @@ export function Sheet({
           <h2 id={titleId} className={hideTitle ? "sr-only" : s.sheetTitle}>
             {title}
           </h2>
-          <button type="button" className={`icon-btn ${s.close}`} onClick={onClose} aria-label="Close">
+          <button type="button" className={`icon-btn ${s.close}`} onClick={() => closeRef.current()} aria-label="Close">
             <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden>
               <path d="M2 2l12 12M14 2L2 14" stroke="currentColor" strokeWidth="1.5" />
             </svg>

@@ -10,7 +10,7 @@
     "typecheck": "tsc --noEmit",
     "emulators": "npx --yes firebase-tools emulators:start --project demo-sys",
     "icons": "node scripts/make-icons.mjs",
-    "seed:emulator": "node scripts/seed-emulator.mjs",
+    "seed:emulator": "node --env-file=.env.local scripts/seed-emulator.mjs",
     "deploy:rules": "npx --yes firebase-tools deploy --only firestore:rules"
   },
   "dependencies": {

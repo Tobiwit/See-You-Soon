@@ -3,17 +3,17 @@
 }
 
 .opener {
-  background: var(--vermilion);
+  background: var(--blush);
   padding: var(--s8) var(--gutter) var(--s7);
   overflow: hidden;
 }
 
 .opener p {
   margin: 0;
-  font-size: clamp(54px, 18vw, 86px);
-  line-height: 0.88;
+  font-size: clamp(46px, 14.5vw, 76px);
+  line-height: 0.92;
   color: var(--ink);
-  margin-right: -20px;
+  overflow-wrap: break-word;
 }
 
 .head {
@@ -57,6 +57,38 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 6px;
+  animation: rise 0.25s var(--ease);
+}
+
+.filterBtn {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  min-height: 44px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink);
+}
+
+.filterBtn[aria-expanded="true"],
+.filterBtn[data-active] {
+  border-color: var(--ink);
+}
+
+.filterCount {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 9px;
+  background: var(--cobalt);
+  color: var(--paper);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 18px;
 }
 
 .filter .select {
@@ -116,13 +148,18 @@
 }
 
 /* ---------- Bento ---------- */
-.bento {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  grid-auto-rows: 78px;
-  grid-auto-flow: row dense;
-  gap: 6px;
+.bentoWrap {
+  container-type: inline-size;
   padding: 0 10px;
+}
+
+/* 7 equal columns; rows are exactly one column wide, so every card is a true square. */
+.bento {
+  --gap: 5px;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-auto-rows: calc((100cqi - 6 * var(--gap)) / 7);
+  gap: var(--gap);
 }
 
 .card {
@@ -130,6 +167,7 @@
   display: block;
   padding: 0;
   border: 0;
+  border-radius: 12px;
   overflow: hidden;
   background: var(--paper-2);
   text-align: left;
@@ -138,26 +176,8 @@
   animation: rise 0.6s var(--ease) both;
 }
 
-.card[data-size="hero"] {
-  grid-column: span 2;
-  grid-row: span 5;
-}
-
-.card[data-size="wide"] {
-  grid-column: span 2;
-  grid-row: span 3;
-}
-
-.card[data-size="tall"] {
-  grid-row: span 4;
-}
-
-.card[data-size="mid"] {
-  grid-row: span 3;
-}
-
-.card[data-size="square"] {
-  grid-row: span 2;
+.card[data-size="s"] {
+  border-radius: 9px;
 }
 
 .card:active {
@@ -209,9 +229,19 @@
   overflow: hidden;
 }
 
-.card[data-size="hero"] .cardTitle,
-.card[data-size="wide"] .cardTitle {
-  font-size: 30px;
+.card[data-size="s"] .cardTitle {
+  font-size: 13px;
+  -webkit-line-clamp: 2;
+}
+
+.card[data-size="s"] .cardText {
+  left: 8px;
+  right: 8px;
+  bottom: 7px;
+}
+
+.card[data-size="l"] .cardTitle {
+  font-size: 28px;
 }
 
 .stamp {
@@ -264,7 +294,7 @@
 }
 
 .fallback[data-type="food"] {
-  background: var(--vermilion);
+  background: var(--blush);
   color: var(--ink);
 }
 
@@ -274,7 +304,7 @@
 }
 
 .fallback[data-type="hotel"] .fbTitle {
-  color: var(--vermilion);
+  color: var(--blush);
 }
 
 .fallback[data-type="place"] {
@@ -310,13 +340,37 @@
   overflow: hidden;
 }
 
-.fallback[data-size="hero"] .fbTitle,
-.fallback[data-size="wide"] .fbTitle {
-  font-size: 40px;
+.fallback[data-size="l"] .fbTitle {
+  font-size: 34px;
 }
 
-.fallback[data-size="square"] .fbTitle {
+.fallback[data-size="m"] .fbTitle {
   font-size: 19px;
+  -webkit-line-clamp: 3;
+}
+
+.fallback[data-size="s"] {
+  padding: 8px;
+}
+
+.fallback[data-size="s"] .fbType,
+.fallback[data-size="s"] .fbPlace,
+.fallback[data-size="xs"] .fbType,
+.fallback[data-size="xs"] .fbPlace {
+  display: none;
+}
+
+.fallback[data-size="s"] .fbTitle {
+  font-size: 13px;
+  -webkit-line-clamp: 3;
+}
+
+.fallback[data-size="xs"] {
+  padding: 6px;
+}
+
+.fallback[data-size="xs"] .fbTitle {
+  font-size: 11px;
   -webkit-line-clamp: 3;
 }
 
@@ -549,7 +603,7 @@
 .memory {
   margin-top: var(--s6);
   padding-top: 14px;
-  border-top: 2px solid var(--vermilion);
+  border-top: 2px solid var(--blush-ink);
 }
 
 .memoryImg {

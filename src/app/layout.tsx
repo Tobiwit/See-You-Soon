@@ -1,10 +1,16 @@
 import type { Metadata, Viewport } from "next";
-import { Agbalumo, Be_Vietnam_Pro, Newsreader } from "next/font/google";
+import { Be_Vietnam_Pro, Fraunces, Newsreader } from "next/font/google";
 import "./globals.css";
 
 // All three faces include full Vietnamese support (Hội An, Phở, Đà Nẵng…).
-// Expressive display voice — 70s poster energy, used sparingly for short titles and graphic moments.
-const display = Agbalumo({ weight: "400", subsets: ["latin", "vietnamese"], variable: "--font-display", display: "swap" });
+// Expressive display voice — a soft, high-contrast 70s serif (Fraunces with its SOFT/WONK axes),
+// used sparingly for titles and graphic moments.
+const display = Fraunces({
+  subsets: ["latin", "vietnamese"],
+  axes: ["SOFT", "WONK", "opsz"],
+  variable: "--font-display",
+  display: "swap",
+});
 // Editorial voice — headings, body, numbers.
 const serif = Newsreader({
   subsets: ["latin", "vietnamese"],

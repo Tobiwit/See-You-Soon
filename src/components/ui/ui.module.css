@@ -33,7 +33,7 @@
 .inkPanel {
   background: var(--ink);
   color: var(--paper);
-  border-top-color: var(--vermilion);
+  border-top-color: var(--blush);
 }
 
 .sheetHead {
@@ -184,7 +184,7 @@
 }
 
 .toast[data-tone="ok"] {
-  border-left-color: var(--vermilion);
+  border-left-color: var(--blush);
 }
 
 .toast[data-tone="error"] {

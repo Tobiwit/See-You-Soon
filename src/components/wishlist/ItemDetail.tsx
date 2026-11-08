@@ -72,7 +72,7 @@ export function ItemDetail({ id }: { id: string }) {
   return (
     <Sheet title={item.title} hideTitle onClose={close} full>
       <div className={s.detailMedia}>
-        {item.image ? <Photo image={item.image} variant="full" alt={item.title} eager /> : <FallbackArt item={item} size="hero" />}
+        {item.image ? <Photo image={item.image} variant="full" alt={item.title} eager /> : <FallbackArt item={item} size="l" />}
       </div>
       <Credit image={item.image} />
 

@@ -47,7 +47,7 @@ export function TravelForm({ id, date: initialDate }: { id?: string; date?: stri
     setError(null);
     try {
       await saveTravel(me, { id: existing?.id, date, from, to, transport });
-      toast(existing ? "Travel updated." : `Travel to ${to.trim()} added.`, "ok");
+      toast(existing ? "Commute updated." : `Commute to ${to.trim()} added.`, "ok");
       close();
     } catch {
       setError("Couldn't save. Nothing was lost — try again.");
@@ -60,7 +60,7 @@ export function TravelForm({ id, date: initialDate }: { id?: string; date?: stri
     setBusy(true);
     try {
       await deleteTravel(existing.id);
-      toast("Travel removed.", "ok");
+      toast("Commute removed.", "ok");
       close();
     } catch {
       setError("Couldn't remove it.");
@@ -70,12 +70,12 @@ export function TravelForm({ id, date: initialDate }: { id?: string; date?: stri
 
   return (
     <Sheet
-      title={existing ? "Travel" : "Add travel"}
+      title={existing ? "Commute" : "Add a commute"}
       onClose={() => !busy && close()}
       footer={
         <button type="submit" form="travel-form" className="btn btn-primary btn-block" disabled={busy}>
           {busy && <span className="spinner" />}
-          {busy ? (sync === "online" ? "Saving…" : "Waiting for connection…") : existing ? "Save" : "Add travel"}
+          {busy ? (sync === "online" ? "Saving…" : "Waiting for connection…") : existing ? "Save" : "Add commute"}
         </button>
       }
     >
@@ -136,12 +136,12 @@ export function TravelForm({ id, date: initialDate }: { id?: string; date?: stri
         )}
         {existing && !confirming && (
           <button type="button" className="link-btn" style={{ color: "var(--danger)" }} onClick={() => setConfirming(true)}>
-            Remove this travel
+            Remove this commute
           </button>
         )}
         {confirming && (
           <Confirm
-            title="Remove this travel?"
+            title="Remove this commute?"
             body="The days after it will show the previous city again."
             confirmLabel="Remove"
             busy={busy}

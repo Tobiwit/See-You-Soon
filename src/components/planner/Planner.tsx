@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -14,7 +14,6 @@ import {
   type DragEndEvent,
   type DragStartEvent,
 } from "@dnd-kit/core";
-import { typeLabel } from "@/config/app";
 import { assignItem } from "@/lib/actions";
 import { formatDay } from "@/lib/dates";
 import { useMe } from "@/lib/session";
@@ -33,6 +32,19 @@ export function Planner() {
   const { days, today, cityByDay } = useDayContext();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [dragging, setDragging] = useState<WishItem | null>(null);
+  const daysRef = useRef<HTMLOListElement>(null);
+  const [drawerShown, setDrawerShown] = useState(() => typeof IntersectionObserver === "undefined");
+
+  // Only bring the drawer in once the day list has reached the middle of the screen.
+  useEffect(() => {
+    const el = daysRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(([e]) => setDrawerShown(e.isIntersecting || e.boundingClientRect.top < 0), {
+      rootMargin: "0px 0px -45% 0px",
+    });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
 
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 6 } }),
@@ -66,7 +78,12 @@ export function Planner() {
     if (date === item.plannedDate) return;
     try {
       await assignItem(me, item, date);
-      toast(date ? `${item.title} → ${formatDay(date, { weekday: "short", day: "numeric", month: "short" })}` : `${item.title} is back in the drawer.`, "ok");
+      toast(
+        date
+          ? `${item.title} → ${formatDay(date, { weekday: "short", day: "numeric", month: "short" })}`
+          : `${item.title} is back in the drawer.`,
+        "ok",
+      );
     } catch {
       toast("Couldn't move it. Try again.", "error");
     }
@@ -87,12 +104,12 @@ export function Planner() {
             Planner
           </h2>
           <button type="button" className="btn" onClick={() => open({ kind: "travel" })}>
-            <span aria-hidden>+</span> Travel
+            <span aria-hidden>+</span> Commute
           </button>
         </div>
         <p className={s.range}>
-          {formatDay(config.tripStart, { day: "numeric", month: "long" })} – {formatDay(config.tripEnd, { day: "numeric", month: "long" })} ·{" "}
-          {days.length} days
+          {formatDay(config.tripStart, { day: "numeric", month: "long" })} – {formatDay(config.tripEnd, { day: "numeric", month: "long" })}{" "}
+          · {days.length} days
         </p>
       </header>
 
@@ -103,7 +120,7 @@ export function Planner() {
         onDragEnd={(e) => void onDragEnd(e)}
         autoScroll={{ threshold: { x: 0, y: 0.18 }, acceleration: 12 }}
       >
-        <ol className={s.days}>
+        <ol ref={daysRef} className={s.days}>
           {days.map((d, i) => {
             const prevCity = i === 0 ? null : cityByDay.get(days[i - 1]);
             const city = cityByDay.get(d) ?? "";
@@ -121,7 +138,7 @@ export function Planner() {
                 {departureMismatch && (
                   <li className={s.cityLabel} data-warn>
                     <span>Departing from</span> {departure.city}
-                    <em>no travel to {departure.city} planned yet</em>
+                    <em>no commute to {departure.city} planned yet</em>
                   </li>
                 )}
                 <DayRow
@@ -157,7 +174,14 @@ export function Planner() {
           </p>
         )}
 
-        <Drawer items={unassigned} open={drawerOpen} setOpen={setDrawerOpen} onTap={(id) => open({ kind: "assign", id })} dragging={dragging} />
+        <Drawer
+          shown={drawerShown || drawerOpen || dragging !== null}
+          items={unassigned}
+          open={drawerOpen}
+          setOpen={setDrawerOpen}
+          onTap={(id) => open({ kind: "assign", id })}
+          dragging={dragging}
+        />
 
         <DragOverlay dropAnimation={null}>{dragging ? <MiniCard item={dragging} lifted /> : null}</DragOverlay>
       </DndContext>
@@ -213,21 +237,29 @@ function DayRow({
       </div>
       <div className={s.dayBody}>
         {fixed.map((f) => (
-          <button key={f.id} type="button" className={s.fixed} onClick={() => onOpenFixed(f.id)}>
-            <span className={s.fixedKind}>
-              <svg width="9" height="11" viewBox="0 0 9 11" aria-hidden>
+          <button
+            key={f.id}
+            type="button"
+            className={s.tile}
+            onClick={() => onOpenFixed(f.id)}
+            aria-label={`Fixed ${f.kind}: ${f.title}${f.note ? `. ${f.note}` : ""}`}
+          >
+            <span className={s.tileSquare} data-fixed aria-hidden>
+              <svg width="10" height="12" viewBox="0 0 9 11">
                 <rect x="0.5" y="4.5" width="8" height="6" fill="none" stroke="currentColor" />
                 <path d="M2 4.5V3a2.5 2.5 0 015 0v1.5" fill="none" stroke="currentColor" />
               </svg>
-              Fixed · {f.kind === "arrival" ? "Arrival" : "Departure"}
+              <span className={s.fixedKind}>{f.kind === "arrival" ? "Arrival" : "Departure"}</span>
+              <span className={s.fixedCity}>{f.city}</span>
             </span>
-            <span className={s.fixedTitle}>{f.title}</span>
-            {f.note && <span className={s.fixedNote}>{f.note}</span>}
+            <span className={s.tileTitle} aria-hidden>
+              {f.title}
+            </span>
           </button>
         ))}
         {moves.map((t) => (
           <button key={t.id} type="button" className={s.travel} onClick={() => onOpenTravel(t.id)}>
-            <span className={s.travelKind}>Travel</span>
+            <span className={s.travelKind}>Commute</span>
             <span>
               {t.from || "?"} <span aria-hidden>→</span>
               <span className="sr-only">to</span> <strong>{t.to}</strong>
@@ -269,28 +301,25 @@ function DraggableMini({ item, onTap }: { item: WishItem; onTap: () => void }) {
 
 function MiniCard({ item, lifted }: { item: WishItem; lifted?: boolean }) {
   return (
-    <span className={s.mini} data-lifted={lifted || undefined} data-visited={item.visited || undefined}>
-      <span className={s.miniImg}>
-        {item.image ? <Photo image={item.image} alt="" /> : <FallbackArt item={item} size="row" />}
+    <span className={s.tile} data-lifted={lifted || undefined} data-visited={item.visited || undefined}>
+      <span className={s.tileSquare}>
+        {item.image ? <Photo image={item.image} alt="" /> : <FallbackArt item={item} size="xs" />}
+        {item.visited && <span className={s.tileCheck}>✓</span>}
       </span>
-      <span className={s.miniText}>
-        <span className={s.miniTitle}>{item.title}</span>
-        <span className={s.miniMeta}>
-          {typeLabel(item.type)} · {item.placeName}
-          {item.visited ? " · ✓ visited" : ""}
-        </span>
-      </span>
+      <span className={s.tileTitle}>{item.title}</span>
     </span>
   );
 }
 
 function Drawer({
+  shown,
   items,
   open,
   setOpen,
   onTap,
   dragging,
 }: {
+  shown: boolean;
   items: WishItem[];
   open: boolean;
   setOpen: (v: boolean) => void;
@@ -300,7 +329,13 @@ function Drawer({
   const { setNodeRef, isOver } = useDroppable({ id: "drawer" });
   const showDropTarget = dragging && dragging.plannedDate;
   return (
-    <div ref={setNodeRef} className={s.drawer} data-open={open || undefined} data-over={isOver || undefined}>
+    <div
+      ref={setNodeRef}
+      className={s.drawer}
+      data-shown={shown || undefined}
+      data-open={open || undefined}
+      data-over={isOver || undefined}
+    >
       <button type="button" className={s.drawerBar} aria-expanded={open} aria-controls="drawer-panel" onClick={() => setOpen(!open)}>
         <span>
           {showDropTarget ? "Drop here to unplan" : "Unassigned ideas"} <span className={s.drawerCount}>· {items.length}</span>
@@ -343,7 +378,7 @@ function DrawerCard({ item, onTap }: { item: WishItem; onTap: () => void }) {
       aria-roledescription="Draggable idea"
       aria-label={`${item.title}. Tap to choose a day, or hold and drag onto a day.`}
     >
-      <span className={s.dcardImg}>{item.image ? <Photo image={item.image} alt="" /> : <FallbackArt item={item} size="square" />}</span>
+      <span className={s.dcardImg}>{item.image ? <Photo image={item.image} alt="" /> : <FallbackArt item={item} size="m" />}</span>
       <span className={s.dcardTitle}>{item.title}</span>
       <span className={s.dcardMeta}>{item.placeName}</span>
     </button>

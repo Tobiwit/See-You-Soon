@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useSyncExternalStore, type FormEvent } from "react";
-import type { RouteStop, SpaceConfig } from "@/config/app";
+import { OWNER, PEOPLE, type RouteStop, type SpaceConfig } from "@/config/app";
 import { savePushSubscription, setCover, updateConfig } from "@/lib/actions";
 import { diffDays, isDayKey } from "@/lib/dates";
 import type { PreparedImage } from "@/lib/images";
@@ -45,9 +45,18 @@ export function Settings() {
 
       <InstallHint />
       <Notifications />
-      <CoverSetting />
-      <TripSettings key={JSON.stringify(pickTrip(config))} />
-      <RouteSettings key={JSON.stringify(config.route)} />
+      {me.key === OWNER ? (
+        <>
+          <CoverSetting />
+          <TripSettings key={JSON.stringify(pickTrip(config))} />
+          <RouteSettings key={JSON.stringify(config.route)} />
+        </>
+      ) : (
+        <section className={s.block}>
+          <p className="eyebrow">Trip settings</p>
+          <p>Dates, the cover photo and the route are looked after by {PEOPLE[OWNER].name}.</p>
+        </section>
+      )}
     </Sheet>
   );
 }

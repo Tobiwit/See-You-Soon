@@ -13,7 +13,7 @@ import {
   type FirestoreError,
   Timestamp,
 } from "firebase/firestore";
-import { DEFAULT_FIXED_EVENTS, DEFAULT_SPACE_CONFIG, SPACE_ID, type PersonKey, type SpaceConfig } from "@/config/app";
+import { DEFAULT_FIXED_EVENTS, DEFAULT_SPACE_CONFIG, DEFAULT_TRAVELLER_LOCATION, SPACE_ID, type PersonKey, type SpaceConfig } from "@/config/app";
 import { fb } from "./firebase";
 import type {
   ActivityEvent,
@@ -40,9 +40,10 @@ export interface SpaceData {
   postcards: Postcard[];
   moments: Moment[];
   moods: Partial<Record<PersonKey, Mood>>;
-  location: SharedLocation | null;
+  location: SharedLocation;
   events: ActivityEvent[];
   members: Partial<Record<PersonKey, { push?: unknown }>>;
+  moodPhotos: { id: string; imageId: string; createdAt: Date | null }[];
 }
 
 const Ctx = createContext<SpaceData | null>(null);
@@ -84,8 +85,12 @@ function mergeConfig(d: DocumentData | undefined): SpaceConfig {
     if (d[k] !== undefined && d[k] !== null) (c as Record<string, unknown>)[k] = d[k];
   }
   c.coverImageId = d.coverImageId ?? null;
+  c.moodPhotoId = d.moodPhotoId ?? null;
   return c;
 }
+
+/** Until the traveller shares a location, show the configured starting point (clearly labelled). */
+const DEFAULT_LOCATION: SharedLocation = { ...DEFAULT_TRAVELLER_LOCATION, source: "default", updatedAt: null };
 
 const EMPTY: SpaceData = {
   loaded: false,
@@ -98,9 +103,10 @@ const EMPTY: SpaceData = {
   postcards: [],
   moments: [],
   moods: {},
-  location: null,
+  location: DEFAULT_LOCATION,
   events: [],
   members: {},
+  moodPhotos: [],
 };
 
 export function SpaceProvider({ me, children }: { me: PersonKey; children: ReactNode }) {
@@ -291,7 +297,7 @@ export function SpaceProvider({ me, children }: { me: PersonKey; children: React
                   source: x.source === "gps" ? "gps" : "manual",
                   updatedAt: toDate(x.updatedAt),
                 }
-              : null,
+              : DEFAULT_LOCATION,
           });
         },
         onErr,
@@ -328,6 +334,20 @@ export function SpaceProvider({ me, children }: { me: PersonKey; children: React
           s.docs.forEach((d) => (members[d.id as PersonKey] = d.data()));
           patch({ members });
         },
+        onErr,
+      ),
+    );
+
+    unsubs.push(
+      onSnapshot(
+        query(col("moodPhotos"), orderBy("createdAt", "asc")),
+        (s) =>
+          patch({
+            moodPhotos: s.docs.map((d) => {
+              const x = d.data({ serverTimestamps: "estimate" });
+              return { id: d.id, imageId: str(x.imageId), createdAt: toDate(x.createdAt) };
+            }),
+          }),
         onErr,
       ),
     );

@@ -17,6 +17,22 @@ export const PEOPLE: Record<PersonKey, { key: PersonKey; name: string }> = {
 /** The person whose journey is drawn on the map and who can share a location. */
 export const TRAVELLER: PersonKey = "alex";
 
+/** Manages the shared settings (dates, cover, route, mood backgrounds). Enforced in firestore.rules too. */
+export const OWNER: PersonKey = "toby";
+
+/**
+ * Shown as Alex's position until Alex shares a location for the first time.
+ * Uzbekistan is already done; the journey is currently in Japan.
+ */
+export const DEFAULT_TRAVELLER_LOCATION = {
+  name: "Tokyo",
+  city: "Tokyo",
+  country: "Japan",
+  countryCode: "JP",
+  lat: 35.68,
+  lon: 139.69,
+} as const;
+
 export const partnerOf = (k: PersonKey): PersonKey => (k === "alex" ? "toby" : "alex");
 
 export const SPACE_ID = "main";
@@ -78,6 +94,8 @@ export interface SpaceConfig {
   route: RouteStop[];
   moodExpiryHours: number;
   coverImageId: string | null;
+  /** Active background photo for the mood section (a moodPhotos doc id). */
+  moodPhotoId: string | null;
 }
 
 /**
@@ -104,6 +122,7 @@ export const DEFAULT_SPACE_CONFIG: SpaceConfig = {
   ],
   moodExpiryHours: 6,
   coverImageId: null,
+  moodPhotoId: null,
 };
 
 export const DEFAULT_FIXED_EVENTS = [

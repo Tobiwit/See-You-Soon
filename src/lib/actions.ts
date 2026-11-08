@@ -398,6 +398,31 @@ export async function setCover(me: PersonKey, img: PreparedImage | null, previou
   await batch.commit();
 }
 
+/* ------------------------------------------------------------------ */
+/* Mood backgrounds (owner only — enforced by the rules)              */
+/* ------------------------------------------------------------------ */
+
+export async function addMoodPhoto(me: PersonKey, img: PreparedImage) {
+  const batch = writeBatch(fb().db);
+  putImage(batch, img, me);
+  const r = ref("moodPhotos");
+  batch.set(r, { imageId: img.id, by: me, createdAt: serverTimestamp() });
+  batch.update(base(), { moodPhotoId: r.id });
+  await batch.commit();
+}
+
+export async function selectMoodPhoto(id: string) {
+  await updateDoc(base(), { moodPhotoId: id });
+}
+
+export async function removeMoodPhoto(photo: { id: string; imageId: string }, nextActiveId: string | null) {
+  const batch = writeBatch(fb().db);
+  batch.delete(ref("moodPhotos", photo.id));
+  dropImage(batch, { kind: "upload", id: photo.imageId, w: 0, h: 0 });
+  batch.update(base(), { moodPhotoId: nextActiveId });
+  await batch.commit();
+}
+
 export async function savePushSubscription(me: PersonKey, sub: PushSubscriptionJSON | null) {
   const r: DocumentReference = ref("members", me);
   await setDoc(

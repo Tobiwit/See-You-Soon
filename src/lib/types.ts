@@ -106,7 +106,7 @@ export interface SharedLocation {
   countryCode?: string;
   lat?: number;
   lon?: number;
-  source: "gps" | "manual";
+  source: "gps" | "manual" | "default";
   updatedAt: When;
 }
 

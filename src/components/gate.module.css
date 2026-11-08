@@ -59,7 +59,7 @@
 .title {
   margin: 18px 0 18px;
   font-size: clamp(88px, 30vw, 150px);
-  color: var(--vermilion);
+  color: var(--blush);
   line-height: 0.82;
   margin-right: -40px;
 }

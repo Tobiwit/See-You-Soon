@@ -6,7 +6,10 @@ import type { WishItem } from "@/lib/types";
 import { Photo } from "../ui/Photo";
 import s from "./wishlist.module.css";
 
-export type BentoSize = "hero" | "wide" | "tall" | "mid" | "square";
+/** Text scale for a card or tile: xs (planner tiles) … l (big bento squares, detail view). */
+export type ArtSize = "xs" | "s" | "m" | "l" | "row";
+
+export const BENTO_COLS = 7;
 
 function hash(str: string) {
   let h = 2166136261;
@@ -14,22 +17,51 @@ function hash(str: string) {
   return h >>> 0;
 }
 
-/** Stable size per item (never reshuffles), nudged by the photo's orientation. */
-export function bentoSize(item: WishItem): BentoSize {
-  const h = hash(item.id);
-  const img = item.image;
-  const pool: BentoSize[] = !img
-    ? ["square", "mid", "wide", "square"]
-    : img.w > img.h * 1.15
-      ? ["wide", "hero", "mid", "square", "wide"]
-      : img.h > img.w * 1.15
-        ? ["tall", "tall", "mid", "hero"]
-        : ["square", "mid", "hero", "tall", "wide"];
-  return pool[h % pool.length];
+export interface BentoSlot {
+  col: number; // 1-based grid line
+  row: number;
+  size: number; // spans size × size cells (2–5)
 }
 
+/**
+ * Skyline packing on a 7-column grid. Every card is a square of 2–5 cells. The
+ * size (and left/right placement) is picked from the idea's id, so the board
+ * looks random but never reshuffles; sizes that would leave a 1-column sliver
+ * are skipped.
+ */
+export function packBento(items: { id: string }[]): Map<string, BentoSlot> {
+  const heights = new Array<number>(BENTO_COLS).fill(0);
+  const out = new Map<string, BentoSlot>();
+  for (const it of items) {
+    const h = hash(it.id);
+    for (let guard = 0; guard < 50; guard++) {
+      const minH = Math.min(...heights);
+      const c = heights.indexOf(minH);
+      let w = 0;
+      while (c + w < BENTO_COLS && heights[c + w] === minH) w++;
+      if (w === 1) {
+        // A single-column pit can't hold a square: level it with its lower neighbour.
+        const n = [heights[c - 1], heights[c + 1]].filter((x) => x !== undefined) as number[];
+        heights[c] = Math.min(...n);
+        continue;
+      }
+      // Every size that fits this gap without leaving a 1-column sliver; the idea's id picks one.
+      const fits = [2, 3, 4, 5].filter((n) => n <= w && w - n !== 1);
+      const size = fits[(h >>> 3) % fits.length];
+      // Alternate sides so equal-sized gaps don't always fill left first.
+      const col = (h & 1) && w > size ? c + (w - size) : c;
+      out.set(it.id, { col: col + 1, row: minH + 1, size });
+      for (let k = col; k < col + size; k++) heights[k] = minH + size;
+      break;
+    }
+  }
+  return out;
+}
+
+const artFor = (size: number): ArtSize => (size <= 2 ? "s" : size === 3 ? "m" : "l");
+
 /** Typographic card used when there is no photo — intentional, never "broken". */
-export function FallbackArt({ item, size = "mid" }: { item: Pick<WishItem, "title" | "type" | "placeName">; size?: BentoSize | "row" }) {
+export function FallbackArt({ item, size = "m" }: { item: Pick<WishItem, "title" | "type" | "placeName">; size?: ArtSize }) {
   return (
     <div className={s.fallback} data-type={item.type} data-size={size} aria-hidden>
       <span className={s.fbType}>{typeLabel(item.type)}</span>
@@ -39,14 +71,15 @@ export function FallbackArt({ item, size = "mid" }: { item: Pick<WishItem, "titl
   );
 }
 
-export function ItemCard({ item, onOpen }: { item: WishItem; onOpen: () => void }) {
-  const size = bentoSize(item);
+export function ItemCard({ item, slot, onOpen }: { item: WishItem; slot: BentoSlot; onOpen: () => void }) {
+  const art = artFor(slot.size);
   return (
     <button
       type="button"
       className={s.card}
-      data-size={size}
+      data-size={art}
       data-visited={item.visited || undefined}
+      style={{ gridColumn: `${slot.col} / span ${slot.size}`, gridRow: `${slot.row} / span ${slot.size}` }}
       onClick={onOpen}
       aria-label={`${item.title}, ${typeLabel(item.type)} in ${item.placeName}${item.visited ? ", visited" : ""}`}
     >
@@ -57,21 +90,23 @@ export function ItemCard({ item, onOpen }: { item: WishItem; onOpen: () => void 
           </span>
           <span className={s.cardShade} aria-hidden />
           <span className={s.cardText} aria-hidden>
-            <span className={s.cardMeta}>
-              {typeLabel(item.type)} · {item.placeName}
-            </span>
+            {art !== "s" && (
+              <span className={s.cardMeta}>
+                {typeLabel(item.type)} · {item.placeName}
+              </span>
+            )}
             <span className={s.cardTitle}>{item.title}</span>
           </span>
         </>
       ) : (
-        <FallbackArt item={item} size={size} />
+        <FallbackArt item={item} size={art} />
       )}
       {item.visited && (
         <span className={s.stamp} aria-hidden>
-          ✓ Visited
+          ✓{art !== "s" && " Visited"}
         </span>
       )}
-      {item.plannedDate && !item.visited && (
+      {item.plannedDate && !item.visited && art !== "s" && (
         <span className={s.planned} aria-hidden>
           {formatDay(item.plannedDate, { day: "numeric", month: "short" })}
         </span>

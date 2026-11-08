@@ -1,5 +1,6 @@
 "use client";
 
+import { Fragment } from "react";
 import { useSpace } from "@/lib/space";
 import { Cover } from "./Cover";
 import { Countdown } from "./Countdown";
@@ -18,10 +19,12 @@ export function Home() {
       <div className={s.band} aria-hidden>
         <p className="display">
           {config.route.map((r, i) => (
-            <span key={r.id}>
-              {r.name}
-              {i < config.route.length - 1 && <em> → </em>}
-            </span>
+            <Fragment key={r.id}>
+              <span>
+                {r.name}
+                {i < config.route.length - 1 && <em>{" →"}</em>}
+              </span>{" "}
+            </Fragment>
           ))}
         </p>
       </div>

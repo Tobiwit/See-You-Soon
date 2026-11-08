@@ -17,6 +17,9 @@ import {
 import sharp from "sharp";
 
 const PROJECT = "demo-sys";
+// Same emails as firestore.rules / .env.local (emulator-only accounts).
+const ALEX = (process.env.ALEX_EMAIL || "alex@example.com").toLowerCase();
+const TOBY = (process.env.TOBY_EMAIL || "toby@example.com").toLowerCase();
 const PASSWORD = "reunion-test-1";
 
 const app = initializeApp({ apiKey: "demo-key", projectId: PROJECT, appId: "1:0:web:demo" });
@@ -56,7 +59,7 @@ const base = doc(db, "spaces", "main");
 async function asUser(email, fn) {
   await signInWithEmailAndPassword(auth, email, PASSWORD);
   try {
-    await fn(email.startsWith("alex") ? "alex" : "toby");
+    await fn(email === ALEX ? "alex" : "toby");
   } finally {
     await signOut(auth);
   }
@@ -103,9 +106,9 @@ async function addItem(batch, by, place, { title, type, description = "", image 
   return r.id;
 }
 
-for (const e of ["alex@example.com", "toby@example.com"]) await ensureUser(e);
+for (const e of [ALEX, TOBY]) await ensureUser(e);
 
-await asUser("toby@example.com", async (me) => {
+await asUser(TOBY, async (me) => {
   const b = writeBatch(db);
   const hanoi = await addPlace(b, me, "Hanoi", 21.0285, 105.8542);
   const hoian = await addPlace(b, me, "Hội An", 15.8801, 108.338);
@@ -115,19 +118,20 @@ await asUser("toby@example.com", async (me) => {
   await addItem(b, me, hoian, { title: "Lantern night walk", type: "activity", image: await sampleImage(1200, 1200, "#3a1450", "#ff8a3d", "lanterns") });
   await addItem(b, me, hanoi, { title: "Train Street", type: "place", url: "https://example.com" });
   await addItem(b, me, hoian, { title: "Tailor a linen shirt", type: "other" });
+  // A sample background for the mood section (Toby-only).
+  const bg = await sampleImage(1200, 1500, "#2a1020", "#c46a8a", "mood background");
+  b.set(doc(base, "images", bg.id), { data: bg.full, w: bg.w, h: bg.h, by: me, createdAt: serverTimestamp() });
+  b.set(doc(base, "thumbs", bg.id), { data: bg.thumb, by: me, createdAt: serverTimestamp() });
+  b.set(doc(collection(base, "moodPhotos")), { imageId: bg.id, by: me, createdAt: serverTimestamp() });
   await b.commit();
 });
 
-await asUser("alex@example.com", async (me) => {
+await asUser(ALEX, async (me) => {
   const b = writeBatch(db);
   const hcmc = await addPlace(b, me, "Ho Chi Minh City", 10.7769, 106.7009);
   await addItem(b, me, hcmc, { title: "Bánh mì Huỳnh Hoa", type: "food", image: await sampleImage(1500, 1000, "#7a2d12", "#f2c14e", "banh mi") });
   await addItem(b, me, hcmc, { title: "Sleeper bus north", type: "transport" });
   b.set(doc(collection(base, "travel")), { date: "2026-12-11", from: "Hanoi", to: "Hội An", transport: "Night train", by: me, createdAt: serverTimestamp() });
-
-  // Location: Alex is in Seoul (sample).
-  b.set(doc(base, "status", "location"), { name: "Seoul", city: "Seoul", country: "South Korea", countryCode: "KR", lat: 37.57, lon: 126.98, source: "gps", by: me, updatedAt: serverTimestamp() });
-  b.set(doc(collection(base, "events")), { type: "location_updated", by: me, refId: null, label: "Seoul", createdAt: serverTimestamp(), seen: { [me]: true } });
 
   const img = await sampleImage(1500, 1000, "#1b2a6b", "#e85d2a", "postcard");
   b.set(doc(base, "images", img.id), { data: img.full, w: img.w, h: img.h, by: me, createdAt: serverTimestamp() });

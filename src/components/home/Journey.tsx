@@ -94,7 +94,7 @@ export function Journey() {
     }
   }
 
-  const where = location?.city || location?.name;
+  const where = location.city || location.name;
 
   return (
     <section id="journey" className={s.journey} aria-labelledby="journey-h">
@@ -110,10 +110,12 @@ export function Journey() {
             <>
               <p className={s.locName}>{where}</p>
               <p className={s.locMeta}>
-                {[location?.country, location?.updatedAt ? `shared ${relativeTime(location.updatedAt, now)}` : null]
-                  .filter(Boolean)
-                  .join(" · ")}
-                {location?.source === "manual" ? " · typed in" : ""}
+                {location.source === "default"
+                  ? `${location.country} · until ${traveller} shares an update`
+                  : [location.country, location.updatedAt ? `shared ${relativeTime(location.updatedAt, now)}` : null]
+                      .filter(Boolean)
+                      .join(" · ")}
+                {location.source === "manual" ? " · typed in" : ""}
               </p>
             </>
           ) : (
