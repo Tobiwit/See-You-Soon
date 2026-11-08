@@ -142,7 +142,7 @@ export function ItemForm({ id }: { id?: string }) {
 
         <div className="field">
           <label htmlFor="f-place">
-            Location <span className="req">required</span>
+            City / Location <span className="req">required</span>
           </label>
           <PlaceSearch id="f-place" value={place} onChange={setPlace} invalid={touched && Boolean(errors.place)} />
           {touched && errors.place && <span className="err">{errors.place}</span>}

@@ -26,7 +26,7 @@ export function HeartMark({
 }) {
   const w = stroke ?? (size < 40 ? 42 : 30);
   return (
-    <svg width={size} height={size} viewBox="70 90 372 372" role={title ? "img" : undefined} aria-hidden={title ? undefined : true}>
+    <svg width={size} height={size} viewBox="46 65 420 420" role={title ? "img" : undefined} aria-hidden={title ? undefined : true}>
       {title && <title>{title}</title>}
       <g fill="none" strokeWidth={w} strokeLinecap="round" strokeLinejoin="round">
         <path d={HEART_PATHS.a} stroke={a} />

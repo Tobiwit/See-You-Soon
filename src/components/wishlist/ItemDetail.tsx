@@ -115,7 +115,7 @@ export function ItemDetail({ id }: { id: string }) {
         )}
         {!linkIsMap && (
           <a className="btn" href={mapsUrl(item.placeName, place?.lat, place?.lon)} target="_blank" rel="noreferrer noopener">
-            {place?.lat !== undefined ? "Show on map" : "Search in Maps"} ↗
+            {place?.lat !== undefined ? "Show city on map" : "Search in Maps"} ↗
           </a>
         )}
         <button type="button" className="btn" onClick={() => open({ kind: "assign", id: item.id })}>

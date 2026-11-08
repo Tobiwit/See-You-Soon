@@ -87,6 +87,8 @@ export function BetweenUs() {
   );
   const tier = level >= 0 ? MOODS[level] : null;
   const picture = tier ? moodPhotos.find((p) => p.id === tier.id) : undefined;
+  // Each tap replays the "peek" (alternating names restarts the CSS animation).
+  const [peeks, setPeeks] = useState(0);
 
   async function choose(id: MoodId | null) {
     setSaving(id ?? "clear");
@@ -166,11 +168,17 @@ export function BetweenUs() {
 
           {tier && picture && (
             <figure className={s.moodPicture}>
-              <div className={s.moodPictureFrame}>
+              <button
+                type="button"
+                className={s.moodPictureFrame}
+                data-peek={peeks ? (peeks % 2 ? "a" : "b") : undefined}
+                onClick={() => setPeeks((n) => n + 1)}
+                aria-label={`Picture for ${tier.label} — tap to peek`}
+              >
                 <Photo key={picture.imageId} image={{ kind: "upload", id: picture.imageId, w: 0, h: 0 }} variant="full" alt="" />
-              </div>
+              </button>
               <figcaption>
-                {tier.emoji} {tier.label} — the hotter of your two moods right now.
+                {tier.emoji} {tier.label} — the hotter of your two moods right now. Tap to peek.
               </figcaption>
             </figure>
           )}

@@ -781,7 +781,10 @@
   background: #fbf8f2;
   font-size: 26px;
   line-height: 1;
-  transition: background 0.2s, border-color 0.2s, transform 0.15s;
+  transition:
+    background 0.2s,
+    border-color 0.2s,
+    transform 0.15s;
 }
 
 .moodBtn:active .moodChip {
@@ -811,6 +814,11 @@
 }
 
 .moodPictureFrame {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  cursor: pointer;
   position: relative;
   aspect-ratio: 1;
   overflow: hidden;
@@ -825,8 +833,49 @@
 }
 
 .moodPictureFrame img {
-  filter: blur(2.5px);
-  transform: scale(1.03);
+  filter: blur(7px);
+  transform: scale(1.06);
+}
+
+/* Tap to peek: clears, holds for a beat, then softens again. */
+.moodPictureFrame[data-peek="a"] img {
+  animation: peekA 1.9s var(--ease);
+}
+
+.moodPictureFrame[data-peek="b"] img {
+  animation: peekB 1.9s var(--ease);
+}
+
+@keyframes peekA {
+  0% {
+    filter: blur(7px);
+    transform: scale(1.06);
+  }
+  28%,
+  48% {
+    filter: blur(0);
+    transform: scale(1.02);
+  }
+  100% {
+    filter: blur(7px);
+    transform: scale(1.06);
+  }
+}
+
+@keyframes peekB {
+  0% {
+    filter: blur(7px);
+    transform: scale(1.06);
+  }
+  28%,
+  48% {
+    filter: blur(0);
+    transform: scale(1.02);
+  }
+  100% {
+    filter: blur(7px);
+    transform: scale(1.06);
+  }
 }
 
 .moodPicture figcaption {

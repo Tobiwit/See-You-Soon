@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { PEOPLE } from "@/config/app";
-import { markEventSeen, markPostcardRead } from "@/lib/actions";
+import { deletePostcard, markEventSeen, markPostcardRead } from "@/lib/actions";
 import { useMe } from "@/lib/session";
 import { useSpace } from "@/lib/space";
 import { Photo } from "../ui/Photo";
-import { Sheet } from "../ui/Sheet";
+import { Confirm, Sheet } from "../ui/Sheet";
 import { useUI } from "../ui/ui-state";
 import s from "./memories.module.css";
 
@@ -14,9 +14,11 @@ import s from "./memories.module.css";
 export function PostcardView({ id }: { id: string }) {
   const { postcards, events, loaded } = useSpace();
   const { key: me } = useMe();
-  const { close } = useUI();
+  const { close, toast } = useUI();
   const p = postcards.find((x) => x.id === id);
   const [back, setBack] = useState(() => !p?.image);
+  const [confirming, setConfirming] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (!p || p.to !== me) return;
@@ -81,10 +83,47 @@ export function PostcardView({ id }: { id: string }) {
         </button>
       </div>
       <p className={s.flipHint}>{back ? "Tap the card to see the photo." : "Tap the card to turn it over."}</p>
-      <p className={s.viewMeta}>
-        From {from} to {to} · {date}
-        {p.place ? ` · ${p.place}` : ""}
-      </p>
+      <div className={s.viewFoot}>
+        <p className={s.viewMeta}>
+          From {from} to {to} · {date}
+          {p.place ? ` · ${p.place}` : ""}
+        </p>
+        {p.by === me && !confirming && (
+          <button type="button" className={`icon-btn ${s.trash}`} aria-label="Delete this postcard" onClick={() => setConfirming(true)}>
+            <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden>
+              <path
+                d="M3.5 5.5h13M8 5.5V3.8c0-.4.3-.8.8-.8h2.4c.5 0 .8.4.8.8v1.7M5.2 5.5l.8 10.7c0 .5.5.8 1 .8h6c.5 0 1-.3 1-.8l.8-10.7M8.3 8.5v5.5M11.7 8.5v5.5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+        )}
+      </div>
+      {confirming && (
+        <Confirm
+          title="Delete this postcard?"
+          body={`It disappears for both of you, including from ${PEOPLE[p.to]?.name ?? "the other person"}'s activity. This can't be undone.`}
+          confirmLabel="Delete"
+          busy={deleting}
+          onCancel={() => setConfirming(false)}
+          onConfirm={async () => {
+            setDeleting(true);
+            try {
+              const eventIds = events.filter((e) => e.type === "postcard_created" && e.refId === p.id && e.by === me).map((e) => e.id);
+              await deletePostcard(p, eventIds);
+              toast("Postcard deleted.", "ok");
+              close();
+            } catch {
+              toast("Couldn't delete it. Try again.", "error");
+              setDeleting(false);
+            }
+          }}
+        />
+      )}
       {/* Full message for assistive tech regardless of side */}
       <div className="sr-only">
         <p>{p.message}</p>

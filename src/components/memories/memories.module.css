@@ -306,8 +306,25 @@
   text-align: center;
 }
 
+.viewFoot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.trash {
+  flex: none;
+  color: #d8d1c3;
+}
+
+.trash:hover {
+  color: #ff8a80;
+}
+
 .viewMeta {
-  margin: 20px 0 0;
+  margin: 0;
   font-size: 13px;
   color: #d8d1c3;
 }

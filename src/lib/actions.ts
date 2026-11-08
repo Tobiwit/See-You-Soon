@@ -308,6 +308,15 @@ export async function sendPostcard(
   return r.id;
 }
 
+/** Sender only (enforced by the rules): removes the postcard, its photo and its activity entries. */
+export async function deletePostcard(postcard: { id: string; image: ImageRef | null }, eventIds: string[]) {
+  const batch = writeBatch(fb().db);
+  batch.delete(ref("postcards", postcard.id));
+  dropImage(batch, postcard.image);
+  for (const id of eventIds) batch.delete(ref("events", id));
+  await batch.commit();
+}
+
 export async function markPostcardRead(id: string) {
   await updateDoc(ref("postcards", id), { readAt: serverTimestamp() });
 }

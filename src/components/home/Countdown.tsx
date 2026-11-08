@@ -1,7 +1,9 @@
 "use client";
 
 import { addDays, diffDays, dayKeyInTz, formatDay, niceFraction, startOfDayInTz, tzShortName, zonedToInstant } from "@/lib/dates";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import { useNow, useSpace } from "@/lib/space";
+import { reducedMotion } from "../ui/ui-state";
 import { useReveal } from "../ui/useReveal";
 import s from "./home.module.css";
 
@@ -15,16 +17,68 @@ function Roll({ value, pad = 2 }: { value: number; pad?: number }) {
   );
 }
 
+const DROP_FROM = 99;
+let dropPlayed = false; // once per app launch
+
+/**
+ * The first time the day count scrolls into view it starts at 99 and drops,
+ * quickly then slowing, to the real number. Skipped with reduced motion.
+ */
+function useDropIn(target: number, el: RefObject<HTMLElement | null>) {
+  const [value, setValue] = useState<number | null>(() =>
+    dropPlayed || target >= DROP_FROM || reducedMotion() || typeof IntersectionObserver === "undefined" ? null : DROP_FROM,
+  );
+  const targetRef = useRef(target);
+  useEffect(() => {
+    targetRef.current = target;
+  });
+
+  useEffect(() => {
+    const node = el.current;
+    if (value === null || !node) return;
+    let raf = 0;
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (!e.isIntersecting) return;
+        io.disconnect();
+        dropPlayed = true;
+        const to = targetRef.current;
+        const t0 = performance.now();
+        const duration = 1800;
+        const tick = (t: number) => {
+          const p = Math.min(1, (t - t0) / duration);
+          const eased = 1 - Math.pow(1 - p, 3);
+          setValue(Math.round(DROP_FROM - (DROP_FROM - to) * eased));
+          if (p < 1) raf = requestAnimationFrame(tick);
+          else setValue(null);
+        };
+        raf = requestAnimationFrame(tick);
+      },
+      { threshold: 0.6 },
+    );
+    io.observe(node);
+    return () => {
+      io.disconnect();
+      cancelAnimationFrame(raf);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return value ?? target;
+}
+
 export function Countdown() {
   const { config } = useSpace();
   const now = useNow(1000);
   const ref = useReveal<HTMLDivElement>();
+  const daysRef = useRef<HTMLSpanElement>(null);
   const tz = config.timezone;
 
   const target = zonedToInstant(config.reunionDate, config.reunionTime, tz);
   const sepStart = startOfDayInTz(config.separationStart, tz);
   const tripOver = startOfDayInTz(addDays(config.tripEnd, 1), tz);
   const remaining = target.getTime() - now.getTime();
+  const shownDays = useDropIn(Math.max(0, Math.floor(remaining / 86_400_000)), daysRef);
 
   const when = `${formatDay(config.reunionDate, { weekday: "long", day: "numeric", month: "long" })} · ${config.reunionTime} (${tzShortName(tz, target)})`;
 
@@ -44,10 +98,10 @@ export function Countdown() {
         <div ref={ref} className="reveal">
           <p className={s.kicker}>Next stop: together.</p>
           <div className={s.days} aria-hidden>
-            <span className={`display ${s.daysNum}`}>
-              <Roll value={days} pad={1} />
+            <span ref={daysRef} className={`display ${s.daysNum}`}>
+              <Roll value={shownDays} pad={1} />
             </span>
-            <span className={s.daysLabel}>{days === 1 ? "day" : "days"}</span>
+            <span className={s.daysLabel}>{shownDays === 1 ? "day" : "days"}</span>
           </div>
           <p className={s.hm} aria-hidden>
             <span className={s.hmNum}>
