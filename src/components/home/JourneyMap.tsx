@@ -5,6 +5,7 @@ import { geoMercator, geoPath, geoInterpolate, type GeoPermissibleObjects } from
 import { feature } from "topojson-client";
 import type { FeatureCollection, Geometry } from "geojson";
 import type { RouteStop } from "@/config/app";
+import { haversineKm } from "@/lib/geo";
 import type { SharedLocation } from "@/lib/types";
 import s from "./home.module.css";
 
@@ -35,12 +36,6 @@ const sameCountry = (a: string, b: string) => {
   return Boolean(na) && na === norm(b);
 };
 
-function haversine(a: { lat: number; lon: number }, b: { lat: number; lon: number }) {
-  const r = Math.PI / 180;
-  const d = Math.sin(((b.lat - a.lat) * r) / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(((b.lon - a.lon) * r) / 2) ** 2;
-  return 2 * 6371 * Math.asin(Math.sqrt(d));
-}
-
 /** Index of the route stop the traveller is currently at (by country, else nearest). */
 export function currentStopIndex(route: RouteStop[], loc: SharedLocation | null): number {
   if (!loc || !route.length) return -1;
@@ -54,7 +49,7 @@ export function currentStopIndex(route: RouteStop[], loc: SharedLocation | null)
     let best = -1;
     let bestD = Infinity;
     route.forEach((st, i) => {
-      const d = haversine(st, { lat: loc.lat!, lon: loc.lon! });
+      const d = haversineKm(st, { lat: loc.lat!, lon: loc.lon! });
       if (d < bestD) {
         bestD = d;
         best = i;

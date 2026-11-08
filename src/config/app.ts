@@ -33,6 +33,12 @@ export const DEFAULT_TRAVELLER_LOCATION = {
   lon: 139.69,
 } as const;
 
+/**
+ * Where the one who stays home is until the reunion — used for the distance line.
+ * From the reunion time on, you're together and the distance is 0 km.
+ */
+export const HOME_BASE = { name: "Regensburg", lat: 49.0134, lon: 12.1016 } as const;
+
 export const partnerOf = (k: PersonKey): PersonKey => (k === "alex" ? "toby" : "alex");
 
 export const SPACE_ID = "main";
@@ -62,7 +68,7 @@ export const MOODS = [
   { id: "innocent", emoji: "😇", label: "Innocent" },
   { id: "sweet", emoji: "🙂", label: "Sweet" },
   { id: "flirty", emoji: "😉", label: "Flirty" },
-  { id: "not-so-innocent", emoji: "😏", label: "Not so innocent" },
+  { id: "not-so-innocent", emoji: "😏", label: "Horny" },
   { id: "distracted", emoji: "🔥", label: "Very distracted" },
 ] as const;
 
@@ -144,4 +150,4 @@ export const DEFAULT_FIXED_EVENTS = [
 export const THINKING_COOLDOWN_MS = 90_000;
 
 /** A mood change is only announced (activity + push) once it has stayed the same this long. */
-export const MOOD_ANNOUNCE_DELAY_MS = 60_000;
+export const MOOD_ANNOUNCE_DELAY_MS = 20_000;

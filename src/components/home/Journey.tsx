@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { PEOPLE, TRAVELLER } from "@/config/app";
+import { HOME_BASE, PEOPLE, TRAVELLER } from "@/config/app";
 import { shareLocation } from "@/lib/actions";
-import { relativeTime } from "@/lib/dates";
+import { relativeTime, zonedToInstant } from "@/lib/dates";
+import { haversineKm } from "@/lib/geo";
 import { authedFetch, useMe } from "@/lib/session";
 import { useNow, useSpace } from "@/lib/space";
 import { PlaceSearch, type PlacePick } from "../ui/PlaceSearch";
@@ -33,7 +34,7 @@ type Step =
 
 export function Journey() {
   const { config, location, sync } = useSpace();
-  const { me } = useMe();
+  const { me, partner } = useMe();
   const now = useNow(60_000);
   const { toast } = useUI();
   const ref = useReveal<HTMLDivElement>();
@@ -96,6 +97,14 @@ export function Journey() {
 
   const where = location.city || location.name;
 
+  // Until the reunion the one at home is in HOME_BASE; from then on you're together (0 km).
+  const reunited = now.getTime() >= zonedToInstant(config.reunionDate, config.reunionTime, config.timezone).getTime();
+  const km = reunited
+    ? 0
+    : typeof location.lat === "number" && typeof location.lon === "number"
+      ? Math.round(haversineKm(HOME_BASE, { lat: location.lat, lon: location.lon }))
+      : null;
+
   return (
     <section id="journey" className={s.journey} aria-labelledby="journey-h">
       <div ref={ref} className="reveal">
@@ -117,6 +126,12 @@ export function Journey() {
                       .join(" · ")}
                 {location.source === "manual" ? " · typed in" : ""}
               </p>
+              {km !== null && (
+                <p className={s.locDistance}>
+                  Distance between you and {partner.name}:{" "}
+                  <strong>{new Intl.NumberFormat("en-GB").format(km)} km</strong>
+                </p>
+              )}
             </>
           ) : (
             <p className={s.locMeta}>No location shared yet.</p>

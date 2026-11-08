@@ -118,7 +118,7 @@ await asUser(TOBY, async (me) => {
   await addItem(b, me, hoian, { title: "Lantern night walk", type: "activity", image: await sampleImage(1200, 1200, "#3a1450", "#ff8a3d", "lanterns") });
   await addItem(b, me, hanoi, { title: "Train Street", type: "place", url: "https://example.com" });
   await addItem(b, me, hoian, { title: "Tailor a linen shirt", type: "other" });
-  // A sample picture for the "Not so innocent" mood tier (Toby-only).
+  // A sample picture for the "Horny" mood tier (Toby-only).
   const bg = await sampleImage(1200, 1500, "#2a1020", "#c46a8a", "mood background");
   b.set(doc(base, "images", bg.id), { data: bg.full, w: bg.w, h: bg.h, by: me, createdAt: serverTimestamp() });
   b.set(doc(base, "thumbs", bg.id), { data: bg.thumb, by: me, createdAt: serverTimestamp() });

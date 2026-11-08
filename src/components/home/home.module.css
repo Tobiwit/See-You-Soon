@@ -478,6 +478,19 @@
   color: var(--muted);
 }
 
+.locDistance {
+  margin: 10px 0 0;
+  font-size: 14px;
+  color: var(--ink-2);
+}
+
+.locDistance strong {
+  font-family: var(--f-serif);
+  font-weight: 400;
+  font-size: 18px;
+  color: var(--cobalt);
+}
+
 .locActions {
   margin-top: 20px;
   display: flex;
