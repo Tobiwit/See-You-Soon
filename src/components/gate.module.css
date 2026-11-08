@@ -1,0 +1,76 @@
+.wrap {
+  min-height: 100svh;
+  max-width: var(--shell);
+  margin: 0 auto;
+  background: var(--paper);
+  padding: calc(var(--safe-top) + 32px) var(--gutter) calc(var(--safe-bottom) + 32px);
+  display: flex;
+  flex-direction: column;
+}
+
+.mark {
+  font-size: 34px;
+  color: var(--cobalt);
+  margin: 0 0 32px;
+}
+
+.small {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 16px;
+}
+
+.card {
+  border-top: 2px solid var(--ink);
+  padding-top: 20px;
+}
+
+.h {
+  font-family: var(--f-serif);
+  font-weight: 400;
+  font-size: 32px;
+  line-height: 1.05;
+  margin: 0 0 12px;
+}
+
+.err {
+  color: var(--danger);
+}
+
+.row {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.cover {
+  margin: 8px calc(-1 * var(--gutter)) 40px;
+  padding: 28px var(--gutter) 24px;
+  background: var(--cobalt);
+  color: var(--paper);
+  overflow: hidden;
+}
+
+.cover :global(.eyebrow) {
+  color: var(--paper);
+  opacity: 0.8;
+}
+
+.title {
+  margin: 18px 0 18px;
+  font-size: clamp(88px, 30vw, 150px);
+  color: var(--vermilion);
+  line-height: 0.82;
+  margin-right: -40px;
+}
+
+.byline {
+  margin: 0;
+  font-family: var(--f-serif);
+  font-style: italic;
+  font-size: 22px;
+}
+
+.form {
+  margin-top: auto;
+}

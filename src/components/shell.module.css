@@ -1,0 +1,159 @@
+.frame {
+  position: relative;
+  max-width: var(--shell);
+  min-height: 100svh;
+  margin: 0 auto;
+  background: var(--paper);
+}
+
+.main {
+  padding-left: calc(var(--rail) + var(--safe-left));
+  overflow-x: clip;
+}
+
+/* ---------- Rail / spine ---------- */
+.rail {
+  position: fixed;
+  z-index: 40;
+  top: 0;
+  bottom: 0;
+  left: max(0px, calc((100vw - var(--shell)) / 2));
+  width: calc(var(--rail) + var(--safe-left));
+  padding: calc(var(--safe-top) + 14px) 0 calc(var(--safe-bottom) + 10px) var(--safe-left);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: var(--paper);
+  border-right: 1px solid var(--line);
+}
+
+.railMark {
+  font-family: var(--f-display);
+  font-size: 13px;
+  color: var(--cobalt);
+  line-height: 1;
+}
+
+.railList {
+  list-style: none;
+  margin: 18px 0 0;
+  padding: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  min-height: 0;
+}
+
+.railItem {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--rail);
+  min-height: 82px;
+  padding: 8px 0;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  transition: color 0.25s;
+}
+
+.railLabel {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.railItem::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 18%;
+  bottom: 18%;
+  width: 3px;
+  background: var(--vermilion);
+  transform: scaleY(0);
+  transition: transform 0.35s var(--ease);
+}
+
+.railItem[data-active="true"] {
+  color: var(--cobalt);
+}
+
+.railItem[data-active="true"] .railLabel {
+  font-weight: 700;
+}
+
+.railItem[data-active="true"]::before {
+  transform: scaleY(1);
+}
+
+.railDot {
+  position: absolute;
+  top: 6px;
+  right: 9px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--vermilion);
+}
+
+.railTools {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.railTool {
+  color: var(--ink-2);
+}
+
+@media (max-height: 560px) {
+  .railItem {
+    min-height: 64px;
+  }
+  .railMark {
+    display: none;
+  }
+}
+
+/* ---------- Colophon ---------- */
+.colophon {
+  padding: var(--s9) var(--gutter) calc(var(--s8) + var(--safe-bottom));
+  text-align: center;
+}
+
+.colophon :global(.display) {
+  font-size: 44px;
+  color: var(--cobalt);
+  margin: 0 0 8px;
+}
+
+/* ---------- Wide screens ---------- */
+.desktopNote {
+  display: none;
+}
+
+@media (min-width: 900px) {
+  .desktopNote {
+    display: block;
+    position: fixed;
+    top: 40px;
+    left: calc(50% + var(--shell) / 2 + 32px);
+    max-width: 200px;
+    font-family: var(--f-serif);
+    font-style: italic;
+    font-size: 18px;
+    color: var(--ink-2);
+  }
+  .frame {
+    box-shadow: 0 0 0 1px var(--line);
+  }
+}
