@@ -21,8 +21,9 @@ const DROP_FROM = 99;
 let dropPlayed = false; // once per app launch
 
 /**
- * The first time the day count scrolls into view it starts at 99 and drops,
- * quickly then slowing, to the real number. Skipped with reduced motion.
+ * The first time the day count scrolls into view it starts at 99 and drops to the
+ * real number: gently at first, faster in the middle, settling slowly at the end.
+ * Skipped with reduced motion. Returns the number to show and whether it is still dropping.
  */
 function useDropIn(target: number, el: RefObject<HTMLElement | null>) {
   const [value, setValue] = useState<number | null>(() =>
@@ -44,10 +45,11 @@ function useDropIn(target: number, el: RefObject<HTMLElement | null>) {
         dropPlayed = true;
         const to = targetRef.current;
         const t0 = performance.now();
-        const duration = 1800;
+        const duration = 3200;
         const tick = (t: number) => {
           const p = Math.min(1, (t - t0) / duration);
-          const eased = 1 - Math.pow(1 - p, 3);
+          // ease-in-out (cubic): readable at 99 and as it lands
+          const eased = p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
           setValue(Math.round(DROP_FROM - (DROP_FROM - to) * eased));
           if (p < 1) raf = requestAnimationFrame(tick);
           else setValue(null);
@@ -64,7 +66,7 @@ function useDropIn(target: number, el: RefObject<HTMLElement | null>) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return value ?? target;
+  return { shown: value ?? target, dropping: value !== null && value !== DROP_FROM };
 }
 
 export function Countdown() {
@@ -78,7 +80,7 @@ export function Countdown() {
   const sepStart = startOfDayInTz(config.separationStart, tz);
   const tripOver = startOfDayInTz(addDays(config.tripEnd, 1), tz);
   const remaining = target.getTime() - now.getTime();
-  const shownDays = useDropIn(Math.max(0, Math.floor(remaining / 86_400_000)), daysRef);
+  const { shown: shownDays, dropping } = useDropIn(Math.max(0, Math.floor(remaining / 86_400_000)), daysRef);
 
   const when = `${formatDay(config.reunionDate, { weekday: "long", day: "numeric", month: "long" })} · ${config.reunionTime} (${tzShortName(tz, target)})`;
 
@@ -99,7 +101,8 @@ export function Countdown() {
           <p className={s.kicker}>Next stop: together.</p>
           <div className={s.days} aria-hidden>
             <span ref={daysRef} className={`display ${s.daysNum}`}>
-              <Roll value={shownDays} pad={1} />
+              {/* While dropping, plain digits (a slide per frame would just smear); the final number rolls in. */}
+              {dropping ? <span>{shownDays}</span> : <Roll value={shownDays} pad={1} />}
             </span>
             <span className={s.daysLabel}>{shownDays === 1 ? "day" : "days"}</span>
           </div>
