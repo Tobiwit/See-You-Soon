@@ -45,3 +45,4 @@ next-env.d.ts
 
 # firebase emulators
 *-debug.log
+firestore.rules
