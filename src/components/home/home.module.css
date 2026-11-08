@@ -197,7 +197,7 @@
 
 /* =================== Countdown =================== */
 .countdown {
-  padding: var(--s10) var(--gutter) var(--s9);
+  padding: var(--s9) var(--gutter) var(--s8);
 }
 
 .kicker {
@@ -321,7 +321,7 @@
 }
 
 .together {
-  padding-bottom: var(--s10);
+  padding-bottom: var(--s9);
 }
 
 .togetherWord {
@@ -356,7 +356,7 @@
 
 /* =================== Journey =================== */
 .journey {
-  padding: var(--s9) var(--gutter) var(--s8);
+  padding: var(--s8) var(--gutter) var(--s7);
 }
 
 .map {
@@ -499,7 +499,7 @@
 
 /* =================== Time apart =================== */
 .timeApart {
-  padding: var(--s8) var(--gutter) var(--s8);
+  padding: var(--s7) var(--gutter) var(--s7);
 }
 
 .apartHead {
@@ -600,7 +600,7 @@
 
 /* =================== Between us =================== */
 .between {
-  padding: var(--s8) var(--gutter) var(--s10);
+  padding: var(--s7) var(--gutter) var(--s9);
 }
 
 .thinkBig {
@@ -685,106 +685,14 @@
 
 .mood {
   position: relative;
-  margin-top: var(--s8);
+  margin-top: var(--s7);
   isolation: isolate;
-}
-
-/* With a background photo: a dark, softly blurred stage with light text. */
-.mood[data-photo] {
-  margin-left: calc(-1 * var(--gutter));
-  margin-right: calc(-1 * var(--gutter));
-  padding: 28px var(--gutter) 22px;
-  overflow: hidden;
-  border-radius: 14px;
-  color: var(--paper);
-  background: var(--ink);
-}
-
-.moodBg {
-  position: absolute;
-  inset: -40px;
-  z-index: -2;
-  transition: filter 1.4s var(--ease);
-}
-
-.moodBg img,
-.moodBg > span {
-  width: 100%;
-  height: 100%;
-}
-
-.mood[data-photo]::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background: linear-gradient(to bottom, rgba(14, 12, 24, 0.55), rgba(14, 12, 24, 0.25) 45%, rgba(14, 12, 24, 0.6));
-}
-
-.mood[data-photo] .moodTitle span {
-  color: var(--blush);
-}
-
-.mood[data-photo] .moodTheirs {
-  border-color: rgba(243, 238, 228, 0.35);
-}
-
-.mood[data-photo] .moodWhen,
-.mood[data-photo] .moodFoot {
-  color: rgba(243, 238, 228, 0.82);
-}
-
-.mood[data-photo] .moodBtn {
-  background: rgba(243, 238, 228, 0.88);
-  border-color: transparent;
-  color: var(--ink);
-}
-
-.mood[data-photo] .moodBtn[aria-pressed="true"] {
-  background: var(--cobalt);
-  color: var(--paper);
-}
-
-.moodBgNote {
-  margin: 10px 0 0;
-  font-size: 12px;
-  color: var(--muted);
 }
 
 .bgManager {
   margin-top: var(--s5);
   padding-top: 14px;
   border-top: 1px dashed var(--line);
-}
-
-.bgRow {
-  display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  padding: 8px 0 4px;
-}
-
-.bgItem {
-  position: relative;
-  flex: none;
-}
-
-.bgThumb,
-.bgAdd {
-  display: grid;
-  place-items: center;
-  width: 64px;
-  height: 64px;
-  padding: 0;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  overflow: hidden;
-  background: var(--paper-2);
-}
-
-.bgThumb[aria-pressed="true"] {
-  outline: 2px solid var(--cobalt);
-  outline-offset: 2px;
 }
 
 .bgRemove {
@@ -799,22 +707,6 @@
   color: var(--paper);
   font-size: 14px;
   line-height: 1;
-}
-
-.bgAdd {
-  flex: none;
-  gap: 0;
-  align-content: center;
-  border-style: dashed;
-  font-size: 11px;
-  color: var(--ink-2);
-}
-
-.bgAdd > span:first-child {
-  font-family: var(--f-serif);
-  font-size: 22px;
-  line-height: 1;
-  color: var(--cobalt);
 }
 
 .moodTitle {
@@ -863,32 +755,128 @@
 .moodPicker {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 4px;
+  gap: 8px;
 }
 
+/* Square choice chips, label underneath */
 .moodBtn {
   display: grid;
   justify-items: center;
   align-content: start;
   gap: 6px;
-  min-height: 80px;
-  padding: 10px 2px 8px;
-  border: 1px solid var(--line);
+  padding: 0;
+  border: 0;
   background: transparent;
+  color: var(--ink);
   touch-action: manipulation;
-  transition: background 0.2s, color 0.2s, border-color 0.2s;
 }
 
-.moodBtn[aria-pressed="true"] {
+.moodChip {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  aspect-ratio: 1;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fbf8f2;
+  font-size: 26px;
+  line-height: 1;
+  transition: background 0.2s, border-color 0.2s, transform 0.15s;
+}
+
+.moodBtn:active .moodChip {
+  transform: scale(0.96);
+}
+
+.moodBtn[aria-pressed="true"] .moodChip {
   background: var(--cobalt);
   border-color: var(--cobalt);
-  color: var(--paper);
+  box-shadow: 0 0 0 3px var(--blush);
+}
+
+.moodBtn[aria-pressed="true"] .moodLabel {
+  font-weight: 700;
+  color: var(--cobalt);
 }
 
 .moodLabel {
   font-size: 10.5px;
   line-height: 1.15;
   text-align: center;
+}
+
+/* The tier's picture: a big square, just slightly softened */
+.moodPicture {
+  margin: 18px 0 0;
+}
+
+.moodPictureFrame {
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 16px;
+  background: var(--paper-2);
+}
+
+.moodPictureFrame img,
+.moodPictureFrame > span {
+  width: 100%;
+  height: 100%;
+}
+
+.moodPictureFrame img {
+  filter: blur(2.5px);
+  transform: scale(1.03);
+}
+
+.moodPicture figcaption {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.tierRow {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  padding-top: 8px;
+}
+
+.tierItem {
+  position: relative;
+  display: grid;
+  gap: 5px;
+}
+
+.tierSlot {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  aspect-ratio: 1;
+  padding: 0;
+  border: 1px dashed var(--ink-2);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--paper-2);
+}
+
+.tierSlot img,
+.tierSlot > span:not(.tierPlus) {
+  width: 100%;
+  height: 100%;
+}
+
+.tierPlus {
+  font-family: var(--f-serif);
+  font-size: 22px;
+  color: var(--cobalt);
+}
+
+.tierLabel {
+  font-size: 9.5px;
+  line-height: 1.15;
+  text-align: center;
+  color: var(--ink-2);
 }
 
 .moodFoot {

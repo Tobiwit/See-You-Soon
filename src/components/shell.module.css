@@ -28,10 +28,9 @@
 }
 
 .railMark {
-  font-family: var(--f-display);
-  font-size: 13px;
-  color: var(--cobalt);
-  line-height: 1;
+  display: grid;
+  place-items: center;
+  line-height: 0;
 }
 
 .railList {
@@ -126,14 +125,13 @@
 
 /* ---------- Colophon ---------- */
 .colophon {
-  padding: var(--s9) var(--gutter) calc(var(--s8) + var(--safe-bottom));
+  padding: var(--s8) var(--gutter) calc(var(--s8) + var(--safe-bottom));
   text-align: center;
 }
 
-.colophon :global(.display) {
-  font-size: 44px;
-  color: var(--cobalt);
-  margin: 0 0 8px;
+.colophon svg {
+  display: block;
+  margin: 0 auto 12px;
 }
 
 /* ---------- Wide screens ---------- */

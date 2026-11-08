@@ -1,5 +1,5 @@
 .section {
-  padding-top: var(--s9);
+  padding-top: var(--s8);
   background: var(--paper);
 }
 
@@ -59,14 +59,34 @@
   color: var(--blush-ink);
 }
 
-.cityLabel[data-warn] {
-  color: var(--ink-2);
+.commuteLine button {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  width: 100%;
+  padding: 16px var(--gutter) 8px;
+  border: 0;
+  background: transparent;
+  text-align: left;
 }
 
-.cityLabel em {
-  width: 100%;
-  font-family: var(--f-sans);
-  font-style: normal;
+.commuteKind {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--blush-ink);
+}
+
+.commuteRoute {
+  font-family: var(--f-serif);
+  font-style: italic;
+  font-size: 20px;
+  color: var(--cobalt);
+}
+
+.commuteHow {
   font-size: 12px;
   color: var(--muted);
 }
@@ -230,37 +250,6 @@
 
 .tile[data-lifted] .tileSquare {
   box-shadow: 0 14px 30px rgba(22, 20, 15, 0.28);
-}
-
-.travel {
-  grid-column: 1 / -1;
-  display: grid;
-  gap: 2px;
-  padding: 6px 0 6px 12px;
-  border: 0;
-  border-left: 2px dashed var(--blush-ink);
-  background: transparent;
-  text-align: left;
-  font-size: 15px;
-}
-
-.travelKind {
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--blush-ink);
-}
-
-.travel strong {
-  font-family: var(--f-serif);
-  font-weight: 400;
-  font-size: 19px;
-}
-
-.travelHow {
-  font-size: 12px;
-  color: var(--muted);
 }
 
 .miniBtn {

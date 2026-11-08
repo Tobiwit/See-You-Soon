@@ -6,6 +6,7 @@ import { useSpace } from "@/lib/space";
 import { useDayContext } from "./planner/plan-utils";
 import { useUI, type SectionId } from "./ui/ui-state";
 import { ThinkingButton } from "./home/Signals";
+import { HeartMark } from "./ui/HeartMark";
 import s from "./shell.module.css";
 
 const SECTIONS: { id: SectionId; label: string }[] = [
@@ -52,7 +53,7 @@ export function Rail() {
   return (
     <nav className={s.rail} aria-label="Sections">
       <span className={s.railMark} aria-hidden>
-        A+T
+        <HeartMark size={26} />
       </span>
       <ul className={s.railList}>
         {SECTIONS.map((sec) => (

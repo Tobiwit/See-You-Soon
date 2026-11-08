@@ -37,7 +37,7 @@ export function Countdown() {
     const span = target.getTime() - sepStart.getTime();
     const progress = span > 0 ? Math.min(1, Math.max(0, (now.getTime() - sepStart.getTime()) / span)) : 0;
     const f = niceFraction(progress);
-    const qualifier = Math.abs(f.delta) < 0.008 ? "" : f.delta < 0 ? "Almost " : "Just over ";
+    const qualifier = Math.abs(f.delta) < 0.008 ? "" : f.delta < 0 ? "Knapp " : "Gut ";
 
     return (
       <section id="countdown" className={s.countdown} aria-label="Countdown to the reunion">
@@ -78,8 +78,8 @@ export function Countdown() {
                 <span className={s.frac}>
                   <sup>{f.n}</sup>⁄<sub>{f.d}</sub>
                 </span>{" "}
-                of the time apart is behind us.
-                <span className="sr-only"> ({Math.round(progress * 100)} percent)</span>
+                der Zeit geschafft!
+                <span className="sr-only"> ({Math.round(progress * 100)} Prozent)</span>
               </p>
             </div>
           )}

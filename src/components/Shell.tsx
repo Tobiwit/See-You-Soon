@@ -6,6 +6,7 @@ import { useSpace } from "@/lib/space";
 import { markEventSeen } from "@/lib/actions";
 import { useUI } from "./ui/ui-state";
 import { Rail } from "./Rail";
+import { HeartMark } from "./ui/HeartMark";
 import { SheetHost } from "./SheetHost";
 import { Home } from "./home/Home";
 import { Wishlist } from "./wishlist/Wishlist";
@@ -85,7 +86,7 @@ export function Shell() {
         <Planner />
         <Memories />
         <footer className={s.colophon}>
-          <p className="display">A+T</p>
+          <HeartMark size={64} title="Alex + Toby" />
           <p className="meta">See You Soon · Vol. 01 · Made for two.</p>
         </footer>
       </main>

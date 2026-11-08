@@ -76,7 +76,7 @@ Cover title · cover photo · first day apart (seeded **10 Oct**, from the earli
 
 Until Alex shares a location for the first time, the map shows him in **Tokyo, Japan** (Uzbekistan done), labelled “until Alex shares an update” — change `DEFAULT_TRAVELLER_LOCATION` in `src/config/app.ts` if needed.
 
-**State of mind backgrounds:** Toby adds photos under the mood selector (“Backgrounds · only you can change these”) and taps one to make it active. The photo is heavily blurred when nobody has set a mood and sharpens with the hotter of the two current moods (never fully sharp).
+**State of mind pictures:** under the mood selector Toby can set one picture per mood tier (Innocent → Very distracted). The picture for the hotter of the two current moods is shown as a big, slightly softened square; with no mood set, nothing is shown.
 
 The arrival (“Toby arrives in Hanoi”, 7 Dec) and departure (“Both leave from Ho Chi Minh City”, 20 Dec) anchors are editable from the Planner but can't be deleted. No flight details were invented — add them in the anchor's note.
 
@@ -134,5 +134,5 @@ Checks: `npm run typecheck`, `npm run lint`, `npm run build`. `npm run icons` re
 7. Planner: drag an idea from the drawer onto a day (long-press) and tap-assign another; both phones show the same days; the drawer count drops.
 8. Add travel Hanoi → Hội An on 11 Dec → “Now in Hội An” appears before 11 Dec on both phones.
 9. Both edit the same idea at once → the second save shows the conflict notice.
-10. Alex opens Settings → only account, Home Screen guide and notifications; no dates, cover or route editing, and no background controls in the mood section.
+10. Alex opens Settings → only account, Home Screen guide and notifications; no dates, cover or route editing, and no picture controls in the mood section.
 11. Airplane mode → the app still opens with the last data and says it's offline; a postcard waits (“Waiting for connection…”) and sends when back online.

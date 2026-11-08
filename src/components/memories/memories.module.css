@@ -1,5 +1,5 @@
 .section {
-  padding: var(--s9) 0 var(--s7);
+  padding: var(--s8) 0 var(--s7);
   border-top: 3px solid var(--ink);
 }
 
@@ -390,7 +390,7 @@
 
 /* ---------- Collected ---------- */
 .collected {
-  margin-top: var(--s9);
+  margin-top: var(--s8);
   padding: 0 var(--gutter);
 }
 

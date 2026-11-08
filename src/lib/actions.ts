@@ -402,24 +402,19 @@ export async function setCover(me: PersonKey, img: PreparedImage | null, previou
 /* Mood backgrounds (owner only — enforced by the rules)              */
 /* ------------------------------------------------------------------ */
 
-export async function addMoodPhoto(me: PersonKey, img: PreparedImage) {
+/** One picture per mood tier, stored at moodPhotos/{tier}. Replaces (and cleans up) any previous one. */
+export async function setMoodPhoto(me: PersonKey, tier: MoodId, img: PreparedImage, previousImageId: string | null) {
   const batch = writeBatch(fb().db);
   putImage(batch, img, me);
-  const r = ref("moodPhotos");
-  batch.set(r, { imageId: img.id, by: me, createdAt: serverTimestamp() });
-  batch.update(base(), { moodPhotoId: r.id });
+  batch.set(ref("moodPhotos", tier), { imageId: img.id, by: me, createdAt: serverTimestamp() });
+  if (previousImageId) dropImage(batch, { kind: "upload", id: previousImageId, w: 0, h: 0 });
   await batch.commit();
 }
 
-export async function selectMoodPhoto(id: string) {
-  await updateDoc(base(), { moodPhotoId: id });
-}
-
-export async function removeMoodPhoto(photo: { id: string; imageId: string }, nextActiveId: string | null) {
+export async function removeMoodPhoto(tier: MoodId, imageId: string) {
   const batch = writeBatch(fb().db);
-  batch.delete(ref("moodPhotos", photo.id));
-  dropImage(batch, { kind: "upload", id: photo.imageId, w: 0, h: 0 });
-  batch.update(base(), { moodPhotoId: nextActiveId });
+  batch.delete(ref("moodPhotos", tier));
+  dropImage(batch, { kind: "upload", id: imageId, w: 0, h: 0 });
   await batch.commit();
 }
 

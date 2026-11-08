@@ -94,8 +94,6 @@ export interface SpaceConfig {
   route: RouteStop[];
   moodExpiryHours: number;
   coverImageId: string | null;
-  /** Active background photo for the mood section (a moodPhotos doc id). */
-  moodPhotoId: string | null;
 }
 
 /**
@@ -122,7 +120,6 @@ export const DEFAULT_SPACE_CONFIG: SpaceConfig = {
   ],
   moodExpiryHours: 6,
   coverImageId: null,
-  moodPhotoId: null,
 };
 
 export const DEFAULT_FIXED_EVENTS = [

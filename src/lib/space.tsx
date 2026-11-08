@@ -85,7 +85,6 @@ function mergeConfig(d: DocumentData | undefined): SpaceConfig {
     if (d[k] !== undefined && d[k] !== null) (c as Record<string, unknown>)[k] = d[k];
   }
   c.coverImageId = d.coverImageId ?? null;
-  c.moodPhotoId = d.moodPhotoId ?? null;
   return c;
 }
 
@@ -340,7 +339,7 @@ export function SpaceProvider({ me, children }: { me: PersonKey; children: React
 
     unsubs.push(
       onSnapshot(
-        query(col("moodPhotos"), orderBy("createdAt", "asc")),
+        col("moodPhotos"),
         (s) =>
           patch({
             moodPhotos: s.docs.map((d) => {

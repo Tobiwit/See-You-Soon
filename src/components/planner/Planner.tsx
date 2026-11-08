@@ -93,7 +93,6 @@ export function Planner() {
   for (const f of fixed) fixedByDay.set(f.date, [...(fixedByDay.get(f.date) ?? []), f]);
   const travelByDay = new Map<string, TravelEvent[]>();
   for (const t of travel) travelByDay.set(t.date, [...(travelByDay.get(t.date) ?? []), t]);
-  const departure = fixed.find((f) => f.kind === "departure");
 
   return (
     <section id="planner" className={s.section} aria-labelledby="planner-h">
@@ -122,36 +121,36 @@ export function Planner() {
       >
         <ol ref={daysRef} className={s.days}>
           {days.map((d, i) => {
-            const prevCity = i === 0 ? null : cityByDay.get(days[i - 1]);
-            const city = cityByDay.get(d) ?? "";
             const moves = travelByDay.get(d) ?? [];
-            const isDeparture = departure?.date === d;
-            const departureMismatch =
-              isDeparture && departure.city && city && departure.city.toLowerCase() !== city.toLowerCase() && !moves.length;
             return (
               <Fragment key={d}>
-                {(i === 0 || (city && city !== prevCity)) && (
+                {i === 0 && (
                   <li className={s.cityLabel}>
-                    <span>{i === 0 ? "Starting in" : "Now in"}</span> {city || "—"}
+                    <span>Starting in</span> {cityByDay.get(d) || "—"}
                   </li>
                 )}
-                {departureMismatch && (
-                  <li className={s.cityLabel} data-warn>
-                    <span>Departing from</span> {departure.city}
-                    <em>no commute to {departure.city} planned yet</em>
+                {/* A commute sits between days, where the city changes. */}
+                {moves.map((t) => (
+                  <li key={t.id} className={s.commuteLine}>
+                    <button type="button" onClick={() => open({ kind: "travel", id: t.id })}>
+                      <span className={s.commuteKind}>Commute</span>
+                      <span className={s.commuteRoute}>
+                        {t.from || "?"} <span aria-hidden>→</span>
+                        <span className="sr-only">to</span> {t.to}
+                      </span>
+                      {t.transport && <span className={s.commuteHow}>{t.transport}</span>}
+                    </button>
                   </li>
-                )}
+                ))}
                 <DayRow
                   day={d}
                   index={i + 1}
                   isToday={d === today}
                   isPast={d < today}
                   fixed={fixedByDay.get(d) ?? []}
-                  moves={moves}
                   items={byDay.get(d) ?? []}
                   onOpenItem={(id) => open({ kind: "item", id })}
                   onOpenFixed={(id) => open({ kind: "fixed", id })}
-                  onOpenTravel={(id) => open({ kind: "travel", id })}
                   dropping={dragging !== null}
                 />
               </Fragment>
@@ -195,11 +194,9 @@ function DayRow({
   isToday,
   isPast,
   fixed,
-  moves,
   items,
   onOpenItem,
   onOpenFixed,
-  onOpenTravel,
   dropping,
 }: {
   day: string;
@@ -207,16 +204,14 @@ function DayRow({
   isToday: boolean;
   isPast: boolean;
   fixed: FixedEvent[];
-  moves: TravelEvent[];
   items: WishItem[];
   onOpenItem: (id: string) => void;
   onOpenFixed: (id: string) => void;
-  onOpenTravel: (id: string) => void;
   dropping: boolean;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: `day:${day}` });
   const label = formatDay(day, { weekday: "long", day: "numeric", month: "long" });
-  const empty = !fixed.length && !moves.length && !items.length;
+  const empty = !fixed.length && !items.length;
 
   return (
     <li
@@ -255,16 +250,6 @@ function DayRow({
             <span className={s.tileTitle} aria-hidden>
               {f.title}
             </span>
-          </button>
-        ))}
-        {moves.map((t) => (
-          <button key={t.id} type="button" className={s.travel} onClick={() => onOpenTravel(t.id)}>
-            <span className={s.travelKind}>Commute</span>
-            <span>
-              {t.from || "?"} <span aria-hidden>→</span>
-              <span className="sr-only">to</span> <strong>{t.to}</strong>
-            </span>
-            {t.transport && <span className={s.travelHow}>{t.transport}</span>}
           </button>
         ))}
         {items.map((it) => (
