@@ -434,21 +434,31 @@ export async function setCover(me: PersonKey, img: PreparedImage | null, previou
 }
 
 /* ------------------------------------------------------------------ */
-/* Mood backgrounds (owner only — enforced by the rules)              */
+/* Mood pictures — each person uploads a set for the other to see     */
 /* ------------------------------------------------------------------ */
 
-/** One picture per mood tier, stored at moodPhotos/{tier}. Replaces (and cleans up) any previous one. */
-export async function setMoodPhoto(me: PersonKey, tier: MoodId, img: PreparedImage, previousImageId: string | null) {
+/** Doc id for my picture of a tier: "{me}_{tier}". */
+export const moodPhotoId = (by: PersonKey, tier: MoodId) => `${by}_${tier}`;
+
+/**
+ * One picture per uploader and mood tier, stored at moodPhotos/{me}_{tier}.
+ * Replaces (and cleans up) any previous one, including an older doc stored under another id.
+ */
+export async function setMoodPhoto(me: PersonKey, tier: MoodId, img: PreparedImage, previous: { id: string; imageId: string } | null) {
   const batch = writeBatch(fb().db);
+  const id = moodPhotoId(me, tier);
   putImage(batch, img, me);
-  batch.set(ref("moodPhotos", tier), { imageId: img.id, by: me, createdAt: serverTimestamp() });
-  if (previousImageId) dropImage(batch, { kind: "upload", id: previousImageId, w: 0, h: 0 });
+  batch.set(ref("moodPhotos", id), { imageId: img.id, tier, by: me, createdAt: serverTimestamp() });
+  if (previous) {
+    if (previous.id !== id) batch.delete(ref("moodPhotos", previous.id));
+    dropImage(batch, { kind: "upload", id: previous.imageId, w: 0, h: 0 });
+  }
   await batch.commit();
 }
 
-export async function removeMoodPhoto(tier: MoodId, imageId: string) {
+export async function removeMoodPhoto(id: string, imageId: string) {
   const batch = writeBatch(fb().db);
-  batch.delete(ref("moodPhotos", tier));
+  batch.delete(ref("moodPhotos", id));
   dropImage(batch, { kind: "upload", id: imageId, w: 0, h: 0 });
   await batch.commit();
 }

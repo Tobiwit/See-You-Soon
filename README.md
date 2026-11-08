@@ -70,13 +70,13 @@ Create a free app at <https://unsplash.com/developers>, put its **Access Key** i
 
 ## 4. What's configurable (in the app, Settings)
 
-Only **Toby** sees and can change the trip settings below (and the mood-section backgrounds). Alex's Settings only show his account, the Home Screen guide and his own notifications. This is enforced in `firestore.rules` (`ownerKey()`), not just hidden in the UI; the owner is set in `src/config/app.ts` (`OWNER`).
+Only **Toby** sees and can change the trip settings below. Alex's Settings only show his account, the Home Screen guide and his own notifications. This is enforced in `firestore.rules` (`ownerKey()`), not just hidden in the UI; the owner is set in `src/config/app.ts` (`OWNER`).
 
 Cover title · cover photo · first day apart (seeded **10 Oct**, from the earlier prototype) · reunion date + time (seeded **7 Dec, 12:00** — also from the prototype, please confirm) · reunion place · trip start/end · timezone (default `Asia/Ho_Chi_Minh`; every “today” and the countdown use it) · mood fade time · the journey route (seeded with country-level stops Uzbekistan → Japan → South Korea → Vietnam — add the real cities via search).
 
 Until Alex shares a location for the first time, the map shows him in **Tokyo, Japan** (Uzbekistan done), labelled “until Alex shares an update” — change `DEFAULT_TRAVELLER_LOCATION` in `src/config/app.ts` if needed.
 
-**State of mind pictures:** under the mood selector Toby can set one picture per mood tier (Innocent → Very distracted). Each of you sees the picture for your own selected mood as a big, blurred square (tap to peek); with no mood set, nothing is shown. Mood changes are only announced (activity + push) after staying the same for 20 seconds.
+**State of mind pictures:** under the mood selector each of you can add one picture per mood tier (Innocent → Very distracted) — for the *other* person. When you pick a mood, you see the picture your partner added for it as a big, blurred square (tap to peek); with no mood set, or no picture for that tier, nothing is shown. Toby's pictures from before this change count as his set (Alex sees them). Mood changes are only announced (activity + push) after staying the same for 20 seconds.
 
 The arrival (“Toby arrives in Hanoi”, 7 Dec) and departure (“Both leave from Ho Chi Minh City”, 20 Dec) anchors are editable from the Planner but can't be deleted. No flight details were invented — add them in the anchor's note.
 

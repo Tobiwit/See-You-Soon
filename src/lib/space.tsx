@@ -13,7 +13,17 @@ import {
   type FirestoreError,
   Timestamp,
 } from "firebase/firestore";
-import { DEFAULT_FIXED_EVENTS, DEFAULT_SPACE_CONFIG, DEFAULT_TRAVELLER_LOCATION, SPACE_ID, type PersonKey, type SpaceConfig } from "@/config/app";
+import {
+  DEFAULT_FIXED_EVENTS,
+  DEFAULT_SPACE_CONFIG,
+  DEFAULT_TRAVELLER_LOCATION,
+  MOODS,
+  OWNER,
+  SPACE_ID,
+  type MoodId,
+  type PersonKey,
+  type SpaceConfig,
+} from "@/config/app";
 import { fb } from "./firebase";
 import type {
   ActivityEvent,
@@ -43,7 +53,16 @@ export interface SpaceData {
   location: SharedLocation;
   events: ActivityEvent[];
   members: Partial<Record<PersonKey, { push?: unknown }>>;
-  moodPhotos: { id: string; imageId: string; createdAt: Date | null }[];
+  moodPhotos: MoodPhoto[];
+}
+
+/** A mood picture uploaded by `by`, shown to the other person when they pick `tier`. */
+export interface MoodPhoto {
+  id: string;
+  tier: MoodId;
+  by: PersonKey;
+  imageId: string;
+  createdAt: Date | null;
 }
 
 const Ctx = createContext<SpaceData | null>(null);
@@ -343,10 +362,16 @@ export function SpaceProvider({ me, children }: { me: PersonKey; children: React
         col("moodPhotos"),
         (s) =>
           patch({
-            moodPhotos: s.docs.map((d) => {
+            moodPhotos: s.docs.flatMap((d): MoodPhoto[] => {
               const x = d.data({ serverTimestamps: "estimate" });
-              return { id: d.id, imageId: str(x.imageId), createdAt: toDate(x.createdAt) };
-            }),
+              // Older pictures were stored at moodPhotos/{tier} and always uploaded by the owner.
+              const tier = (typeof x.tier === "string" ? x.tier : d.id) as MoodId;
+              const by: PersonKey = x.by === "alex" || x.by === "toby" ? x.by : OWNER;
+              if (!MOODS.some((m) => m.id === tier)) return [];
+              return [{ id: d.id, tier, by, imageId: str(x.imageId), createdAt: toDate(x.createdAt) }];
+            })
+              // Newest first, so a fresh upload wins over an older doc for the same tier.
+              .sort((a, b) => (b.createdAt?.getTime() ?? 0) - (a.createdAt?.getTime() ?? 0)),
           }),
         onErr,
       ),

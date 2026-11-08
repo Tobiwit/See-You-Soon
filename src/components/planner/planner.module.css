@@ -162,6 +162,8 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px 8px;
   align-content: start;
+  /* Top-align tiles so a two-line title doesn't push its square out of line. */
+  align-items: start;
   min-width: 0;
 }
 

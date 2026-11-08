@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
-import { MOODS, OWNER, PEOPLE, THINKING_COOLDOWN_MS, partnerOf, type MoodId } from "@/config/app";
+import { MOODS, PEOPLE, THINKING_COOLDOWN_MS, TRAVELLER, partnerOf, type MoodId } from "@/config/app";
 import { removeMoodPhoto, setMood, setMoodPhoto, thinkingOfYou } from "@/lib/actions";
 import { prepareImage } from "@/lib/images";
 import { Photo } from "../ui/Photo";
@@ -80,9 +80,9 @@ export function BetweenUs() {
   const theirMood = MOODS.find((m) => m.id === theirs?.mood);
   const lastThought = events.find((e) => e.by === partner && e.type === "thinking_of_you");
 
-  // Each of you sees the picture for your own selected mood.
+  // You see the picture your partner chose for the mood you selected.
   const tier = MOODS.find((m) => m.id === mine?.mood) ?? null;
-  const picture = tier ? moodPhotos.find((p) => p.id === tier.id) : undefined;
+  const picture = tier ? moodPhotos.find((p) => p.by === partner && p.tier === tier.id) : undefined;
   // Each tap replays the "peek" (alternating names restarts the CSS animation).
   const [peeks, setPeeks] = useState(0);
 
@@ -177,17 +177,18 @@ export function BetweenUs() {
             </figure>
           )}
         </div>
-        {me === OWNER && <MoodPictures />}
+        <MoodPictures />
       </div>
     </section>
   );
 }
 
-/** Toby only: one picture per mood tier. */
+/** Your own set: one picture per mood tier, shown to your partner when they pick that mood. */
 function MoodPictures() {
-  const { moodPhotos } = useSpace();
+  const { moodPhotos: all } = useSpace();
   const { key: me } = useMe();
   const { toast } = useUI();
+  const moodPhotos = useMemo(() => all.filter((p) => p.by === me), [all, me]);
   const input = useRef<HTMLInputElement>(null);
   const target = useRef<MoodId | null>(null);
   const [busy, setBusy] = useState<MoodId | null>(null);
@@ -202,8 +203,8 @@ function MoodPictures() {
     if (!file || !tier) return;
     setBusy(tier);
     try {
-      const prev = moodPhotos.find((p) => p.id === tier)?.imageId ?? null;
-      await setMoodPhoto(me, tier, await prepareImage(file), prev);
+      const prev = moodPhotos.find((p) => p.tier === tier) ?? null;
+      await setMoodPhoto(me, tier, await prepareImage(file), prev && { id: prev.id, imageId: prev.imageId });
       toast(`Picture set for “${MOODS.find((m) => m.id === tier)?.label}”.`, "ok");
     } catch (e) {
       toast(
@@ -218,11 +219,11 @@ function MoodPictures() {
     }
   }
 
-  async function remove(tier: MoodId, imageId: string) {
+  async function remove(tier: MoodId, id: string, imageId: string) {
     if (!window.confirm("Remove this picture?")) return;
     setBusy(tier);
     try {
-      await removeMoodPhoto(tier, imageId);
+      await removeMoodPhoto(id, imageId);
     } catch {
       toast("Couldn't remove it.", "error");
     } finally {
@@ -232,10 +233,11 @@ function MoodPictures() {
 
   return (
     <div className={s.bgManager}>
-      <p className="eyebrow">A picture for every mood · only you can change these</p>
+      <p className="eyebrow">You can add a picture for each Mood</p>
+      {me === TRAVELLER && <p className={s.bgNote}>Fühl dich nicht gezwungen {PEOPLE[me].name} &lt;3</p>}
       <div className={s.tierRow}>
         {MOODS.map((m) => {
-          const photo = moodPhotos.find((p) => p.id === m.id);
+          const photo = moodPhotos.find((p) => p.tier === m.id);
           return (
             <div key={m.id} className={s.tierItem}>
               <button
@@ -260,7 +262,7 @@ function MoodPictures() {
                   type="button"
                   className={s.bgRemove}
                   aria-label={`Remove the picture for ${m.label}`}
-                  onClick={() => void remove(m.id, photo.imageId)}
+                  onClick={() => void remove(m.id, photo.id, photo.imageId)}
                 >
                   ×
                 </button>
