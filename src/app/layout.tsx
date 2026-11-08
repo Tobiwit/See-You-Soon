@@ -32,7 +32,7 @@ export const metadata: Metadata = {
   description: "Alex + Toby — a small private publication for the time apart and the trip together.",
   applicationName: "See You Soon",
   robots: { index: false, follow: false },
-  appleWebApp: { capable: true, title: "See You Soon", statusBarStyle: "black-translucent" },
+  appleWebApp: { capable: true, title: "See You Soon", statusBarStyle: "default" },
   formatDetection: { telephone: false },
   icons: {
     icon: [{ url: "/icons/icon.svg", type: "image/svg+xml" }, { url: "/icons/icon-192.png", sizes: "192x192" }],

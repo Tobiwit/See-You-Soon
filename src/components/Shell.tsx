@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useRef } from "react";
 import { useMe } from "@/lib/session";
 import { useSpace } from "@/lib/space";
-import { markEventSeen } from "@/lib/actions";
+import { MOOD_ANNOUNCE_DELAY_MS } from "@/config/app";
+import { announceMood, markEventSeen } from "@/lib/actions";
 import { useUI } from "./ui/ui-state";
 import { Rail } from "./Rail";
 import { HeartMark } from "./ui/HeartMark";
@@ -20,6 +21,7 @@ export function Shell() {
   const { key: me } = useMe();
   const space = useSpace();
   const pendingLink = useRef<string | null>(null);
+  useMoodAnnouncer();
 
   // Always open on the cover.
   useEffect(() => {
@@ -119,4 +121,23 @@ function SyncBar() {
       {text}
     </div>
   );
+}
+
+/**
+ * When my mood changed and then stayed put for MOOD_ANNOUNCE_DELAY_MS, announce it once.
+ * Also catches up after the app was closed before the delay ran out.
+ */
+function useMoodAnnouncer() {
+  const { key: me } = useMe();
+  const { moods, sync } = useSpace();
+  const mine = moods[me];
+  const pending = Boolean(mine?.mood && mine.announced === false);
+  const changedAt = mine?.updatedAt?.getTime() ?? 0;
+
+  useEffect(() => {
+    if (!pending || sync !== "online") return;
+    const wait = Math.max(0, changedAt + MOOD_ANNOUNCE_DELAY_MS - Date.now()) + 750;
+    const timer = setTimeout(() => void announceMood(me).catch(() => {}), wait);
+    return () => clearTimeout(timer);
+  }, [pending, changedAt, sync, me]);
 }

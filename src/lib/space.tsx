@@ -271,6 +271,7 @@ export function SpaceProvider({ me, children }: { me: PersonKey; children: React
               mood: x.mood ?? null,
               updatedAt: toDate(x.updatedAt),
               expiresAt: toDate(x.expiresAt),
+              announced: x.announced !== false,
             };
           });
           patch({ moods });

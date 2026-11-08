@@ -76,7 +76,7 @@ Cover title · cover photo · first day apart (seeded **10 Oct**, from the earli
 
 Until Alex shares a location for the first time, the map shows him in **Tokyo, Japan** (Uzbekistan done), labelled “until Alex shares an update” — change `DEFAULT_TRAVELLER_LOCATION` in `src/config/app.ts` if needed.
 
-**State of mind pictures:** under the mood selector Toby can set one picture per mood tier (Innocent → Very distracted). The picture for the hotter of the two current moods is shown as a big, slightly softened square; with no mood set, nothing is shown.
+**State of mind pictures:** under the mood selector Toby can set one picture per mood tier (Innocent → Very distracted). Each of you sees the picture for your own selected mood as a big, blurred square (tap to peek); with no mood set, nothing is shown. Mood changes are only announced (activity + push) after staying the same for 60 seconds.
 
 The arrival (“Toby arrives in Hanoi”, 7 Dec) and departure (“Both leave from Ho Chi Minh City”, 20 Dec) anchors are editable from the Planner but can't be deleted. No flight details were invented — add them in the anchor's note.
 

@@ -1,172 +1,183 @@
 /* =================== Cover =================== */
+/* An editorial cover: paper, masthead, one sharp photo, quiet cover lines. */
 .cover {
+  container-type: inline-size;
   position: relative;
   min-height: 100svh;
-  overflow: hidden;
   display: flex;
   flex-direction: column;
-  padding: calc(var(--safe-top) + 16px) var(--gutter) calc(var(--safe-bottom) + 18px);
-  color: var(--paper);
-  background: var(--cobalt);
-  isolation: isolate;
-}
-
-.coverMedia {
-  position: absolute;
-  inset: -24px;
-  z-index: -2;
-}
-
-.coverMedia img,
-.coverMedia > span {
-  width: 100%;
-  height: 100%;
-}
-
-/* Soften only a real photo so the title can sit on it. */
-.coverMedia img {
-  filter: blur(6px) saturate(1.05);
-  transform: scale(1.04);
-}
-
-.coverFallback {
-  position: absolute;
-  inset: 0;
-  background: var(--cobalt);
-}
-
-.coverFallback::after {
-  content: "";
-  position: absolute;
-  width: 115vw;
-  max-width: 560px;
-  aspect-ratio: 1;
-  right: -46%;
-  bottom: -18%;
-  border-radius: 50%;
-  background: var(--blush);
-  opacity: 0.92;
-}
-
-.coverShade {
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background: linear-gradient(
-    to bottom,
-    rgba(12, 12, 28, 0.42) 0%,
-    rgba(12, 12, 28, 0) 26%,
-    rgba(12, 12, 28, 0) 52%,
-    rgba(12, 12, 28, 0.6) 100%
-  );
+  padding: calc(var(--safe-top) + 14px) var(--gutter) calc(var(--safe-bottom) + 10px);
+  background: var(--paper);
+  color: var(--ink);
 }
 
 .coverTop {
   display: flex;
   justify-content: space-between;
   gap: 8px;
-  font-size: 11px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--ink);
+  font-size: 10.5px;
   font-weight: 600;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  padding-bottom: 10px;
-  border-bottom: 1px solid rgba(243, 238, 228, 0.55);
 }
 
-.coverTitle {
+.masthead {
   font-family: var(--f-cover);
-  margin: 7vh 0 0;
-  margin-right: calc(-1 * var(--gutter) - 30px);
-  font-size: clamp(98px, 34vw, 172px);
-  line-height: 0.8;
-  text-shadow: 0 2px 30px rgba(10, 10, 30, 0.18);
-}
-
-.coverTitle span {
-  display: block;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.18em;
+  margin: 10px 0 12px;
+  font-size: 19cqi;
+  line-height: 0.9;
+  letter-spacing: -0.035em;
+  color: var(--cobalt);
   white-space: nowrap;
 }
 
-.coverTitle span:nth-child(2) {
-  color: var(--blush);
-  padding-left: 0.42em;
+.mastheadAccent {
+  color: var(--blush-ink);
 }
 
-.coverTitle span:nth-child(3) {
-  padding-left: 0.12em;
+.coverPhoto {
+  position: relative;
+  flex: 1;
+  min-height: 46svh;
+  margin: 0;
+  overflow: hidden;
+  background: var(--paper-2);
+}
+
+.coverPhoto img,
+.coverPhoto > span {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.coverFallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  padding: 14px;
+  background: var(--cobalt);
+  overflow: hidden;
+  color: var(--paper);
+  font-size: 12px;
+}
+
+.coverFallback::after {
+  content: "";
+  position: absolute;
+  width: 92%;
+  aspect-ratio: 1;
+  right: -32%;
+  top: -18%;
+  border-radius: 50%;
+  background: var(--blush);
+}
+
+.coverFallback span {
+  position: relative;
+  z-index: 1;
+  opacity: 0.85;
 }
 
 .coverByline {
-  margin: 30px 0 0;
-  font-family: var(--f-serif);
-  font-style: italic;
-  font-size: 24px;
-}
-
-.coverFoot {
-  margin-top: auto;
-  padding-top: 28px;
-  display: grid;
-  gap: 18px;
-}
-
-.activity {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: 1px;
-  animation: rise 0.8s var(--ease) 0.3s both;
-}
-
-.activityItem {
   display: flex;
   align-items: baseline;
-  gap: 10px;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 10px 0 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--ink);
+}
+
+.coverNames {
+  font-family: var(--f-serif);
+  font-style: italic;
+  font-size: 22px;
+  line-height: 1.1;
+}
+
+.coverWhere {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+
+/* One-line updates — small and discreet */
+.updates {
+  list-style: none;
+  margin: 2px 0 0;
+  padding: 0;
+}
+
+.update {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   width: 100%;
-  min-height: 46px;
-  padding: 12px 14px;
+  min-height: 34px;
+  padding: 6px 0;
   border: 0;
-  background: var(--paper);
-  color: var(--ink);
+  border-bottom: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink-2);
+  font-size: 13px;
   text-align: left;
 }
 
-.newTag {
+.updateDot {
   flex: none;
-  padding: 2px 6px;
-  background: var(--blush);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  border: 1px solid var(--muted);
+}
+
+.update[data-new] {
   color: var(--ink);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
 }
 
-.activityText {
+.update[data-new] .updateDot {
+  background: var(--blush-ink);
+  border-color: var(--blush-ink);
+}
+
+.updateText {
   flex: 1;
-  font-family: var(--f-serif);
-  font-size: 18px;
-  line-height: 1.2;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.activityTime {
+.updateTime {
   flex: none;
   font-size: 11px;
   color: var(--muted);
 }
 
 .scrollCue {
-  justify-self: center;
+  align-self: center;
   display: grid;
   justify-items: center;
-  gap: 6px;
+  gap: 4px;
   min-height: 44px;
-  padding: 4px 16px;
+  margin-top: 6px;
+  padding: 4px 16px 0;
   border: 0;
   background: none;
-  color: var(--paper);
-  font-size: 10px;
+  color: var(--ink-2);
+  font-size: 9.5px;
   font-weight: 600;
   letter-spacing: 0.24em;
   text-transform: uppercase;
@@ -174,7 +185,7 @@
 
 .cueLine {
   width: 1px;
-  height: 34px;
+  height: 22px;
   background: currentColor;
   transform-origin: top;
   animation: cue 2.4s var(--ease) infinite;

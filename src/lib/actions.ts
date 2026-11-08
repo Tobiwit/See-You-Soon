@@ -13,7 +13,7 @@ import {
   type DocumentReference,
   type WriteBatch,
 } from "firebase/firestore";
-import { SPACE_ID, THINKING_COOLDOWN_MS, type ItemType, type MoodId, type PersonKey, type SpaceConfig } from "@/config/app";
+import { MOOD_ANNOUNCE_DELAY_MS, SPACE_ID, THINKING_COOLDOWN_MS, type ItemType, type MoodId, type PersonKey, type SpaceConfig } from "@/config/app";
 import { fb } from "./firebase";
 import { primeImage, uploadRef, type PreparedImage } from "./images";
 import { authedFetch } from "./session";
@@ -357,16 +357,42 @@ export async function thinkingOfYou(me: PersonKey, lastSentAt: Date | null) {
   return "sent" as const;
 }
 
+/**
+ * Saves the mood right away but does *not* announce it yet — see announceMood.
+ * Flicking through a few moods therefore only produces one activity entry/push.
+ */
 export async function setMood(me: PersonKey, mood: MoodId | null, expiryHours: number) {
-  const batch = writeBatch(fb().db);
-  batch.set(ref("moods", me), {
+  await setDoc(ref("moods", me), {
     mood,
     updatedAt: serverTimestamp(),
     expiresAt: mood ? Timestamp.fromMillis(Date.now() + expiryHours * 3_600_000) : null,
+    announced: !mood, // clearing never announces
   });
-  if (mood) addEvent(batch, me, "mood_updated", null, mood);
-  await batch.commit();
-  if (mood) notifyPartner("mood_updated", mood, null);
+}
+
+/**
+ * Creates the "mood updated" activity (and push) once the mood has been unchanged for
+ * MOOD_ANNOUNCE_DELAY_MS. Runs in a transaction so it re-checks the server copy and never
+ * announces twice. Returns true if it announced.
+ */
+export async function announceMood(me: PersonKey): Promise<boolean> {
+  const { db } = fb();
+  const moodRef = ref("moods", me);
+  const announced = await runTransaction(db, async (tx) => {
+    const snap = await tx.get(moodRef);
+    const x = snap.data();
+    if (!x || x.announced !== false || !x.mood) return null;
+    const updated = x.updatedAt instanceof Timestamp ? x.updatedAt.toMillis() : 0;
+    if (Date.now() - updated < MOOD_ANNOUNCE_DELAY_MS - 1000) return null; // changed again meanwhile
+    const expired = x.expiresAt instanceof Timestamp && x.expiresAt.toMillis() < Date.now();
+    tx.update(moodRef, { announced: true });
+    if (expired) return null;
+    const ev = ref("events");
+    tx.set(ev, { type: "mood_updated", by: me, refId: null, label: x.mood, createdAt: serverTimestamp(), seen: { [me]: true } });
+    return x.mood as string;
+  });
+  if (announced) notifyPartner("mood_updated", announced, null);
+  return Boolean(announced);
 }
 
 export async function markEventSeen(me: PersonKey, id: string) {

@@ -97,6 +97,8 @@ export interface Mood {
   mood: MoodId | null;
   updatedAt: When;
   expiresAt: When;
+  /** false while a fresh change is waiting out the announce delay */
+  announced: boolean;
 }
 
 export interface SharedLocation {

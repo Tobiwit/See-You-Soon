@@ -80,12 +80,8 @@ export function BetweenUs() {
   const theirMood = MOODS.find((m) => m.id === theirs?.mood);
   const lastThought = events.find((e) => e.by === partner && e.type === "thinking_of_you");
 
-  // The picture follows the hotter of the two current moods.
-  const level = Math.max(
-    MOODS.findIndex((m) => m.id === mine?.mood),
-    MOODS.findIndex((m) => m.id === theirs?.mood),
-  );
-  const tier = level >= 0 ? MOODS[level] : null;
+  // Each of you sees the picture for your own selected mood.
+  const tier = MOODS.find((m) => m.id === mine?.mood) ?? null;
   const picture = tier ? moodPhotos.find((p) => p.id === tier.id) : undefined;
   // Each tap replays the "peek" (alternating names restarts the CSS animation).
   const [peeks, setPeeks] = useState(0);
@@ -177,9 +173,7 @@ export function BetweenUs() {
               >
                 <Photo key={picture.imageId} image={{ kind: "upload", id: picture.imageId, w: 0, h: 0 }} variant="full" alt="" />
               </button>
-              <figcaption>
-                {tier.emoji} {tier.label} — the hotter of your two moods right now. Tap to peek.
-              </figcaption>
+              <figcaption>Tap to peek</figcaption>
             </figure>
           )}
         </div>

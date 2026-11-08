@@ -142,3 +142,6 @@ export const DEFAULT_FIXED_EVENTS = [
 ];
 
 export const THINKING_COOLDOWN_MS = 90_000;
+
+/** A mood change is only announced (activity + push) once it has stayed the same this long. */
+export const MOOD_ANNOUNCE_DELAY_MS = 60_000;
