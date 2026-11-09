@@ -23,14 +23,19 @@ export function Cover() {
   const { open, goTo } = useUI();
   const partner = partnerOf(me);
 
-  // The other person's latest events from the last week. Never invented.
-  const latest = useMemo(
-    () =>
-      events
-        .filter((e) => e.by === partner && e.createdAt && now.getTime() - e.createdAt.getTime() < WINDOW_MS)
-        .slice(0, MAX_UPDATES),
-    [events, partner, now],
-  );
+  // The other person's latest events from the last week, only the newest of each kind
+  // (a new mood replaces the previous one). Never invented.
+  const latest = useMemo(() => {
+    const kinds = new Set<string>();
+    return events
+      .filter((e) => {
+        if (e.by !== partner || !e.createdAt || now.getTime() - e.createdAt.getTime() >= WINDOW_MS) return false;
+        if (kinds.has(e.type)) return false;
+        kinds.add(e.type);
+        return true;
+      })
+      .slice(0, MAX_UPDATES);
+  }, [events, partner, now]);
 
   const [first, ...rest] = config.title.trim().split(/\s+/);
   const last = rest.pop();

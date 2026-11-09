@@ -2,7 +2,7 @@
 
 A small, private, mobile-first web app (installable on the iPhone Home Screen) for the time apart and the Vietnam trip, **7–20 December 2026**.
 
-- **Home** — cover with latest activity, countdown to the reunion, journey map + “currently in”, the time-apart calendar, *Thinking of you* and the mood (“horniness”) indicator.
+- **Home** — cover with latest activity, countdown to the reunion, journey map + “currently in”, the time-apart calendar, the signals (*Thinking of you*, *Feeling down*, *Call me?*) and the mood (“horniness”) indicator.
 - **Wishlist** — image-led bento board / list, place + type filters, add/edit/delete, visited state with an optional memory.
 - **Planner** — 7–20 Dec day by day, fixed arrival/departure anchors, travel between cities, sticky drawer of unassigned ideas (long-press drag **or** tap → “Add to day…”).
 - **Memories** — postcards (flip to read), small moments, and visited wishlist places.
@@ -76,7 +76,7 @@ Cover title · cover photo · first day apart (seeded **10 Oct**, from the earli
 
 Until Alex shares a location for the first time, the map shows him in **Tokyo, Japan** (Uzbekistan done), labelled “until Alex shares an update” — change `DEFAULT_TRAVELLER_LOCATION` in `src/config/app.ts` if needed.
 
-**State of mind pictures:** under the mood selector each of you can add one picture per mood tier (Innocent → Very distracted) — for the *other* person. When you pick a mood, you see the picture your partner added for it as a big, blurred square (tap to peek); with no mood set, or no picture for that tier, nothing is shown. Toby's pictures from before this change count as his set (Alex sees them). Mood changes are only announced (activity + push) after staying the same for 20 seconds.
+**State of mind pictures:** under the mood selector each of you can add one picture per mood tier (Innocent → Very distracted) — for the *other* person. When you pick a mood, you see the picture your partner added for it as a big, blurred square (tap to peek); with no mood set, or no picture for that tier, nothing is shown. Toby's pictures from before this change count as his set (Alex sees them). Mood changes are only announced after staying the same for 20 seconds. They always show in the activity, but a push ("… horniness increased.") only goes out when the mood moved *up* the scale compared with the last announced one, and never for Innocent. Clearing or letting a mood expire resets that baseline.
 
 The arrival (“Toby arrives in Hanoi”, 7 Dec) and departure (“Both leave from Ho Chi Minh City”, 20 Dec) anchors are editable from the Planner but can't be deleted. No flight details were invented — add them in the anchor's note.
 
@@ -129,7 +129,7 @@ Checks: `npm run typecheck`, `npm run lint`, `npm run build`. `npm run icons` re
 2. Toby adds a wishlist idea with a photo → it appears on Alex's board within seconds, and Alex's cover shows “Toby added somewhere to go”.
 3. Alex taps *Update location* (allow location) → Toby sees the new city, “shared just now”, and the map highlight moves. Toby has no *Update location* button.
 4. Alex sends a postcard → Toby's cover shows “A postcard from Alex.”, Memories has a dot; opening it marks it read and the dot disappears.
-5. *Thinking of you* from either side → shows on the other cover; a second tap within 90 s doesn't send again.
+5. *Thinking of you*, *Feeling down* or *Call me?* from either side → shows on the other cover; a second tap within 90 s doesn't send again.
 6. Set a mood → the other person sees it; *Clear it now* removes it; it also fades after the configured hours.
 7. Planner: drag an idea from the drawer onto a day (long-press) and tap-assign another; both phones show the same days; the drawer count drops.
 8. Add travel Hanoi → Hội An on 11 Dec → “Now in Hội An” appears before 11 Dec on both phones.

@@ -8,9 +8,13 @@ export function describeEvent(e: ActivityEvent): string {
     case "postcard_created":
       return `A postcard from ${name}.`;
     case "wishlist_item_added":
-      return e.label ? `${name} added somewhere to go: ${e.label}.` : `${name} added somewhere to go.`;
+      return e.label ? `${name} added ${e.label}` : `${name} added somewhere to go.`;
     case "thinking_of_you":
       return `${name} is thinking of you.`;
+    case "feeling_down":
+      return `${name} is feeling down.`;
+    case "call_me":
+      return `${name} would love a call.`;
     case "mood_updated": {
       const m = MOODS.find((x) => x.id === e.label);
       return m ? `${name} is feeling ${m.label.toLowerCase()} ${m.emoji}` : `${name} set a new mood.`;

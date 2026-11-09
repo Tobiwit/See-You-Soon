@@ -313,6 +313,24 @@
   transition: transform 1.2s var(--ease);
 }
 
+.fraction .pct {
+  margin: 8px 0 0;
+  font-family: var(--f-sans);
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  color: var(--cobalt);
+}
+
+.pctSign {
+  margin-left: 0.2em;
+}
+
+.fraction p.pct + p {
+  margin-top: 6px;
+}
+
 .fraction p {
   margin: 12px 0 0;
   font-family: var(--f-serif);
@@ -643,6 +661,49 @@
 
 .thinkBig:active {
   background: var(--cobalt-tint);
+}
+
+.signalRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.signalSmall {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 11px 10px;
+  border: 1.5px solid var(--ink);
+  background: var(--paper);
+  color: var(--ink);
+  text-align: left;
+  transition: background 0.2s;
+  touch-action: manipulation;
+}
+
+.signalSmall:active {
+  background: var(--blush-tint);
+}
+
+.signalGlyph {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 20px;
+  height: 20px;
+}
+
+.signalTitle {
+  min-width: 0;
+  font-size: 16px;
+  line-height: 1.1;
+  color: var(--cobalt);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .thinkText {

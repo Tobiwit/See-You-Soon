@@ -116,6 +116,8 @@ export type ActivityType =
   | "postcard_created"
   | "wishlist_item_added"
   | "thinking_of_you"
+  | "feeling_down"
+  | "call_me"
   | "mood_updated"
   | "location_updated"
   | "planner_item_assigned"

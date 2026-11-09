@@ -43,7 +43,7 @@ export function Shell() {
       else if ((type === "wishlist_item_added" || type === "planner_item_assigned") && id) open({ kind: "item", id });
       else if (type === "moment_added") goTo("memories");
       else if (type === "location_updated") goTo("journey");
-      else if (type === "thinking_of_you" || type === "mood_updated") goTo("between-us");
+      else if (["thinking_of_you", "feeling_down", "call_me", "mood_updated"].includes(type)) goTo("between-us");
       // The notification's own event id: mark it seen.
       const ev = space.events.find((e) => e.id === id || e.refId === id);
       if (ev && !ev.seen[me]) void markEventSeen(me, ev.id).catch(() => {});

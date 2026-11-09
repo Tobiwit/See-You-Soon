@@ -2,7 +2,7 @@
 
 import { useMemo, useRef, useState } from "react";
 import { MOODS, PEOPLE, THINKING_COOLDOWN_MS, TRAVELLER, partnerOf, type MoodId } from "@/config/app";
-import { removeMoodPhoto, setMood, setMoodPhoto, thinkingOfYou } from "@/lib/actions";
+import { removeMoodPhoto, sendSignal, setMood, setMoodPhoto, type SignalKind } from "@/lib/actions";
 import { prepareImage } from "@/lib/images";
 import { Photo } from "../ui/Photo";
 import { relativeTime } from "@/lib/dates";
@@ -32,7 +32,7 @@ export function ThinkingButton({ compact = false }: { compact?: boolean }) {
     setPulse((p) => p + 1);
     if (sync === "offline") toast("Offline — it will send when you're back.");
     try {
-      await thinkingOfYou(me, lastMine);
+      await sendSignal(me, "thinking_of_you", lastMine);
       toast(`${partner.name} will know you're thinking of them.`, "ok");
     } catch {
       toast("Couldn't send it. Try again in a moment.", "error");
@@ -63,6 +63,90 @@ export function ThinkingButton({ compact = false }: { compact?: boolean }) {
         </span>
       )}
     </button>
+  );
+}
+
+const SMALL_SIGNALS: {
+  kind: Exclude<SignalKind, "thinking_of_you">;
+  title: string;
+  sent: (partner: string) => string;
+  glyph: React.ReactNode;
+}[] = [
+  {
+    kind: "feeling_down",
+    title: "Feeling down",
+    sent: (p) => `${p} knows you're feeling down.`,
+    glyph: (
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden>
+        <path
+          d="M7 15.5h10a3.5 3.5 0 0 0 .4-7 5 5 0 0 0-9.6-1.2A4 4 0 0 0 7 15.5Z"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinejoin="round"
+        />
+        <path d="M9 18.5v2M12.5 18v2.5M16 18.5v2" stroke="var(--cobalt)" strokeWidth="1.5" strokeLinecap="round" />
+      </svg>
+    ),
+  },
+  {
+    kind: "call_me",
+    title: "Call me?",
+    sent: (p) => `${p} knows you'd love a call.`,
+    glyph: (
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden>
+        <path
+          d="M6.6 3.8 9 3.3l1.6 4-1.9 1.3a10.5 10.5 0 0 0 6.7 6.7l1.3-1.9 4 1.6-.5 2.4a2 2 0 0 1-2.1 1.6C10.6 18.5 5.5 13.4 5 6a2 2 0 0 1 1.6-2.2Z"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinejoin="round"
+        />
+        <path d="M15 3.5a5.5 5.5 0 0 1 5.5 5.5" fill="none" stroke="var(--cobalt)" strokeWidth="1.5" strokeLinecap="round" />
+      </svg>
+    ),
+  },
+];
+
+/** Two smaller one-tap signals under "Thinking of you", side by side. */
+function SmallSignals() {
+  const { events, sync } = useSpace();
+  const { key: me, partner } = useMe();
+  const { toast } = useUI();
+  const [busy, setBusy] = useState<SignalKind | null>(null);
+
+  async function send(sig: (typeof SMALL_SIGNALS)[number]) {
+    if (busy) return;
+    const last = events.find((e) => e.by === me && e.type === sig.kind)?.createdAt ?? null;
+    setBusy(sig.kind);
+    if (sync === "offline") toast("Offline — it will send when you're back.");
+    try {
+      // sendSignal applies the cooldown itself.
+      const result = await sendSignal(me, sig.kind, last);
+      toast(result === "cooldown" ? `Already on its way to ${partner.name}.` : sig.sent(partner.name), result === "cooldown" ? undefined : "ok");
+    } catch {
+      toast("Couldn't send it. Try again in a moment.", "error");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  return (
+    <div className={s.signalRow}>
+      {SMALL_SIGNALS.map((sig) => (
+        <button
+          key={sig.kind}
+          type="button"
+          className={s.signalSmall}
+          onClick={() => void send(sig)}
+          aria-label={`${sig.title} — send a signal to ${partner.name}`}
+          aria-busy={busy === sig.kind}
+        >
+          <span className={s.signalGlyph}>{busy === sig.kind ? <span className="spinner" /> : sig.glyph}</span>
+          <span className={`display ${s.signalTitle}`}>{sig.title}</span>
+        </button>
+      ))}
+    </div>
   );
 }
 
@@ -104,6 +188,7 @@ export function BetweenUs() {
           Between us
         </p>
         <ThinkingButton />
+        <SmallSignals />
         {lastThought?.createdAt && (
           <p className={s.thoughtLine}>
             {PEOPLE[partner].name} last thought of you {relativeTime(lastThought.createdAt, now)}.

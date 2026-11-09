@@ -13,7 +13,7 @@ import {
   type DocumentReference,
   type WriteBatch,
 } from "firebase/firestore";
-import { MOOD_ANNOUNCE_DELAY_MS, SPACE_ID, THINKING_COOLDOWN_MS, type ItemType, type MoodId, type PersonKey, type SpaceConfig } from "@/config/app";
+import { MOODS, MOOD_ANNOUNCE_DELAY_MS, SPACE_ID, THINKING_COOLDOWN_MS, type ItemType, type MoodId, type PersonKey, type SpaceConfig } from "@/config/app";
 import { fb } from "./firebase";
 import { primeImage, uploadRef, type PreparedImage } from "./images";
 import { authedFetch } from "./session";
@@ -348,12 +348,15 @@ export async function deleteMoment(id: string, image: ImageRef | null) {
 /* Signals                                                             */
 /* ------------------------------------------------------------------ */
 
-export async function thinkingOfYou(me: PersonKey, lastSentAt: Date | null) {
+export type SignalKind = "thinking_of_you" | "feeling_down" | "call_me";
+
+/** One-tap signal to the other person (activity + push). A short cooldown per kind stops double-sends. */
+export async function sendSignal(me: PersonKey, kind: SignalKind, lastSentAt: Date | null) {
   if (lastSentAt && Date.now() - lastSentAt.getTime() < THINKING_COOLDOWN_MS) return "cooldown" as const;
   const batch = writeBatch(fb().db);
-  const r = addEvent(batch, me, "thinking_of_you", null, "");
+  const r = addEvent(batch, me, kind, null, "");
   await batch.commit();
-  notifyPartner("thinking_of_you", "", r.id);
+  notifyPartner(kind, "", r.id);
   return "sent" as const;
 }
 
@@ -362,18 +365,25 @@ export async function thinkingOfYou(me: PersonKey, lastSentAt: Date | null) {
  * Flicking through a few moods therefore only produces one activity entry/push.
  */
 export async function setMood(me: PersonKey, mood: MoodId | null, expiryHours: number) {
-  await setDoc(ref("moods", me), {
-    mood,
-    updatedAt: serverTimestamp(),
-    expiresAt: mood ? Timestamp.fromMillis(Date.now() + expiryHours * 3_600_000) : null,
-    announced: !mood, // clearing never announces
-  });
+  await setDoc(
+    ref("moods", me),
+    {
+      mood,
+      updatedAt: serverTimestamp(),
+      expiresAt: mood ? Timestamp.fromMillis(Date.now() + expiryHours * 3_600_000) : null,
+      announced: !mood, // clearing never announces
+      // Clearing also resets the baseline the next mood is compared against.
+      ...(mood ? {} : { announcedMood: null, announcedUntil: null }),
+    },
+    { merge: true },
+  );
 }
 
 /**
- * Creates the "mood updated" activity (and push) once the mood has been unchanged for
+ * Creates the "mood updated" activity once the mood has been unchanged for
  * MOOD_ANNOUNCE_DELAY_MS. Runs in a transaction so it re-checks the server copy and never
- * announces twice. Returns true if it announced.
+ * announces twice. A push only goes out when the mood went *up* the scale compared with the
+ * last announced (still active) mood, and never for "Innocent". Returns true if it announced.
  */
 export async function announceMood(me: PersonKey): Promise<boolean> {
   const { db } = fb();
@@ -385,13 +395,20 @@ export async function announceMood(me: PersonKey): Promise<boolean> {
     const updated = x.updatedAt instanceof Timestamp ? x.updatedAt.toMillis() : 0;
     if (Date.now() - updated < MOOD_ANNOUNCE_DELAY_MS - 1000) return null; // changed again meanwhile
     const expired = x.expiresAt instanceof Timestamp && x.expiresAt.toMillis() < Date.now();
-    tx.update(moodRef, { announced: true });
-    if (expired) return null;
+    if (expired) {
+      tx.update(moodRef, { announced: true });
+      return null;
+    }
+    const order = MOODS.map((m) => m.id as string);
+    const until = x.announcedUntil instanceof Timestamp ? x.announcedUntil.toMillis() : 0;
+    const before = typeof x.announcedMood === "string" && until > Date.now() ? order.indexOf(x.announcedMood) : -1;
+    const level = order.indexOf(x.mood);
+    tx.update(moodRef, { announced: true, announcedMood: x.mood, announcedUntil: x.expiresAt ?? null });
     const ev = ref("events");
     tx.set(ev, { type: "mood_updated", by: me, refId: null, label: x.mood, createdAt: serverTimestamp(), seen: { [me]: true } });
-    return x.mood as string;
+    return { mood: x.mood as string, increased: level > 0 && level > before };
   });
-  if (announced) notifyPartner("mood_updated", announced, null);
+  if (announced?.increased) notifyPartner("mood_updated", announced.mood, null);
   return Boolean(announced);
 }
 

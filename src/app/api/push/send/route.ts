@@ -13,6 +13,8 @@ import { errorResponse, requireMember } from "@/lib/server/auth";
 type Kind =
   | "postcard_created"
   | "thinking_of_you"
+  | "feeling_down"
+  | "call_me"
   | "wishlist_item_added"
   | "mood_updated"
   | "moment_added"
@@ -25,10 +27,14 @@ function compose(kind: Kind, name: string, label: string) {
       return { title: `A postcard from ${name}.`, body: l || "Open it in Memories." };
     case "thinking_of_you":
       return { title: `${name} is thinking of you.`, body: "" };
+    case "feeling_down":
+      return { title: `${name} is feeling down.`, body: "Maybe send something sweet." };
+    case "call_me":
+      return { title: `${name} would love a call.`, body: "Whenever you have a moment." };
     case "wishlist_item_added":
       return { title: `${name} added somewhere to go.`, body: l };
     case "mood_updated":
-      return { title: `${name} set a new mood.`, body: "" };
+      return { title: `${name}'s horniness increased.`, body: "" };
     case "moment_added":
       return { title: `${name} saved a moment.`, body: l };
     case "location_updated":
@@ -52,6 +58,8 @@ export async function POST(req: Request) {
     const kinds: Kind[] = [
       "postcard_created",
       "thinking_of_you",
+      "feeling_down",
+      "call_me",
       "wishlist_item_added",
       "mood_updated",
       "moment_added",

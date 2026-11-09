@@ -69,6 +69,69 @@ function useDropIn(target: number, el: RefObject<HTMLElement | null>) {
   return { shown: value ?? target, dropping: value !== null && value !== DROP_FROM };
 }
 
+const pctFormat = new Intl.NumberFormat("de-DE", { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+let countUpPlayed = false; // once per app launch
+
+/**
+ * Share of the time apart that is done, with three decimals. The first time it scrolls into
+ * view it counts up from 0; afterwards every digit that changes rolls in.
+ */
+function LivePercent({ value }: { value: number }) {
+  const el = useRef<HTMLParagraphElement>(null);
+  const [counting, setCounting] = useState<number | null>(() =>
+    countUpPlayed || reducedMotion() || typeof IntersectionObserver === "undefined" ? null : 0,
+  );
+  const valueRef = useRef(value);
+  useEffect(() => {
+    valueRef.current = value;
+  });
+
+  useEffect(() => {
+    const node = el.current;
+    if (counting === null || !node) return;
+    let raf = 0;
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (!e.isIntersecting) return;
+        io.disconnect();
+        countUpPlayed = true;
+        const t0 = performance.now();
+        const duration = 2600;
+        const tick = (t: number) => {
+          const p = Math.min(1, (t - t0) / duration);
+          const eased = 1 - Math.pow(1 - p, 3); // ease-out: fast start, slow landing
+          setCounting(valueRef.current * eased);
+          if (p < 1) raf = requestAnimationFrame(tick);
+          else setCounting(null);
+        };
+        raf = requestAnimationFrame(tick);
+      },
+      { threshold: 0.6 },
+    );
+    io.observe(node);
+    return () => {
+      io.disconnect();
+      cancelAnimationFrame(raf);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const text = pctFormat.format(counting ?? value);
+  return (
+    <p ref={el} className={s.pct} aria-hidden>
+      {counting !== null
+        ? text
+        : // Keyed by position + character: only the digits that change remount and roll.
+          [...text].map((ch, i) => (
+            <span key={`${i}-${ch}`} className={s.roll}>
+              {ch}
+            </span>
+          ))}
+      <span className={s.pctSign}>%</span>
+    </p>
+  );
+}
+
 export function Countdown() {
   const { config } = useSpace();
   const now = useNow(1000);
@@ -130,6 +193,7 @@ export function Countdown() {
               <div className={s.fracBar} aria-hidden>
                 <span style={{ transform: `scaleX(${progress})` }} />
               </div>
+              <LivePercent value={progress * 100} />
               <p>
                 {qualifier}
                 <span className={s.frac}>

@@ -158,7 +158,7 @@ function Notifications() {
     <section className={s.block}>
       <p className="eyebrow">Notifications</p>
       <p>
-        Get a quiet alert when {partner.name} sends a postcard, adds an idea, thinks of you or changes the mood. Optional — the cover
+        Get a quiet alert when {partner.name} sends a postcard, adds an idea, sends a signal or turns the mood up. Optional — the cover
         always shows what&apos;s new.
       </p>
       {perm === "unsupported" ? (
