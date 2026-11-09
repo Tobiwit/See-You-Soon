@@ -4,6 +4,7 @@ import {
   collection,
   deleteField,
   doc,
+  getDoc,
   runTransaction,
   serverTimestamp,
   setDoc,
@@ -17,7 +18,7 @@ import { MOODS, MOOD_ANNOUNCE_DELAY_MS, SPACE_ID, THINKING_COOLDOWN_MS, type Ite
 import { fb } from "./firebase";
 import { primeImage, uploadRef, type PreparedImage } from "./images";
 import { authedFetch } from "./session";
-import type { ActivityType, FixedEvent, ImageRef, WishItem } from "./types";
+import type { ActivityType, DailyAnswer, FixedEvent, ImageRef, WishItem } from "./types";
 
 /**
  * Every write here resolves only once the Firestore backend has acknowledged
@@ -410,6 +411,68 @@ export async function announceMood(me: PersonKey): Promise<boolean> {
   });
   if (announced?.increased) notifyPartner("mood_updated", announced.mood, null);
   return Boolean(announced);
+}
+
+/* ------------------------------------------------------------------ */
+/* Daily question                                                      */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Saves my answer + my guess for the other person (final — no edits), plus a content-free
+ * "done" marker the partner can see. Pushes to the partner; no activity entry (the cover
+ * already shows the daily question line).
+ */
+export async function answerDaily(me: PersonKey, day: string, qid: string, answer: string, guess: string, partnerDone: boolean) {
+  const batch = writeBatch(fb().db);
+  const id = `${day}_${me}`;
+  batch.set(ref("daily", id), {
+    day,
+    qid,
+    by: me,
+    answer: answer.trim().slice(0, 1000),
+    guess: guess.trim().slice(0, 1000),
+    createdAt: serverTimestamp(),
+    resultSeenAt: null,
+  });
+  batch.set(ref("dailyDone", id), { day, by: me, createdAt: serverTimestamp() });
+  await batch.commit();
+  notifyPartner("daily_answered", partnerDone ? "both" : "", day);
+}
+
+export async function markDailySeen(me: PersonKey, day: string) {
+  await updateDoc(ref("daily", `${day}_${me}`), { resultSeenAt: serverTimestamp() });
+}
+
+const partnerAnswers = new Map<string, DailyAnswer>();
+
+/** Cached partner answers (immutable once written). */
+export const cachedDailyAnswer = (day: string, by: PersonKey) => partnerAnswers.get(`${day}_${by}`) ?? null;
+
+/** Reads the other person's answer. The rules only allow this once I've answered that day too. */
+export async function fetchDailyAnswer(day: string, by: PersonKey): Promise<DailyAnswer | null> {
+  const key = `${day}_${by}`;
+  const hit = partnerAnswers.get(key);
+  if (hit) return hit;
+  const snap = await getDoc(ref("daily", key));
+  const x = snap.data();
+  if (!x) return null;
+  const a: DailyAnswer = {
+    id: snap.id,
+    day: String(x.day ?? day),
+    qid: String(x.qid ?? ""),
+    by,
+    answer: String(x.answer ?? ""),
+    guess: String(x.guess ?? ""),
+    createdAt: x.createdAt instanceof Timestamp ? x.createdAt.toDate() : null,
+    resultSeenAt: null,
+  };
+  partnerAnswers.set(key, a);
+  return a;
+}
+
+/** Owner only: the full question order (asked + current must stay in front — the caller keeps them). */
+export async function saveQuestionOrder(order: string[]) {
+  await setDoc(ref("meta", "questions"), { order, updatedAt: serverTimestamp() });
 }
 
 export async function markEventSeen(me: PersonKey, id: string) {

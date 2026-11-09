@@ -15,6 +15,7 @@ type Kind =
   | "thinking_of_you"
   | "feeling_down"
   | "call_me"
+  | "daily_answered"
   | "wishlist_item_added"
   | "mood_updated"
   | "moment_added"
@@ -27,6 +28,10 @@ function compose(kind: Kind, name: string, label: string) {
       return { title: `A postcard from ${name}.`, body: l || "Open it in Memories." };
     case "thinking_of_you":
       return { title: `${name} is thinking of you.`, body: "" };
+    case "daily_answered":
+      return l === "both"
+        ? { title: `${name} answered the daily question.`, body: "The results are in." }
+        : { title: `${name} answered the daily question.`, body: `Your turn. Can you guess what ${name} said?` };
     case "feeling_down":
       return { title: `${name} is feeling down.`, body: "Maybe send something sweet." };
     case "call_me":
@@ -60,6 +65,7 @@ export async function POST(req: Request) {
       "thinking_of_you",
       "feeling_down",
       "call_me",
+      "daily_answered",
       "wishlist_item_added",
       "mood_updated",
       "moment_added",

@@ -10,6 +10,7 @@ import { FixedForm } from "./planner/FixedForm";
 import { PostcardView } from "./memories/PostcardView";
 import { PostcardComposer } from "./memories/PostcardComposer";
 import { MomentForm, MomentView } from "./memories/Moments";
+import { DailyArchive, DailySheet } from "./memories/Daily";
 import { Settings } from "./settings/Settings";
 
 /** Renders the top-most sheet of the stack. */
@@ -17,7 +18,7 @@ export function SheetHost() {
   const { sheets } = useUI();
   const top = sheets[sheets.length - 1];
   if (!top) return null;
-  const k = `${sheets.length}-${top.kind}-${"id" in top ? top.id : ""}`;
+  const k = `${sheets.length}-${top.kind}-${"id" in top ? top.id : "day" in top ? top.day : ""}`;
   switch (top.kind) {
     case "item":
       return <ItemDetail key={k} id={top.id} />;
@@ -39,6 +40,10 @@ export function SheetHost() {
       return <MomentForm key={k} />;
     case "moment":
       return <MomentView key={k} id={top.id} />;
+    case "daily":
+      return <DailySheet key={k} day={top.day} />;
+    case "daily-archive":
+      return <DailyArchive key={k} />;
     case "settings":
       return <Settings key={k} />;
   }

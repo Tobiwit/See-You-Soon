@@ -8,6 +8,7 @@ import { useSpace } from "@/lib/space";
 import type { ImageRef, Postcard } from "@/lib/types";
 import { Photo } from "../ui/Photo";
 import { useUI } from "../ui/ui-state";
+import { DailyBlock } from "./Daily";
 import s from "./memories.module.css";
 
 export function Memories() {
@@ -62,6 +63,8 @@ export function Memories() {
           ))}
         </ul>
       )}
+
+      <DailyBlock />
 
       <div className={s.collected}>
         <div className={s.titleRow}>

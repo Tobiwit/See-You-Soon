@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { OWNER, PEOPLE, partnerOf } from "@/config/app";
 import { markEventSeen } from "@/lib/actions";
+import { useDaily } from "@/lib/daily";
 import { formatDay, relativeTime } from "@/lib/dates";
 import { useMe } from "@/lib/session";
 import { useNow, useSpace } from "@/lib/space";
@@ -22,6 +23,7 @@ export function Cover() {
   const now = useNow(60_000);
   const { open, goTo } = useUI();
   const partner = partnerOf(me);
+  const { banner } = useDaily();
 
   // The other person's latest events from the last week, only the newest of each kind
   // (a new mood replaces the previous one). Never invented.
@@ -34,8 +36,16 @@ export function Cover() {
         kinds.add(e.type);
         return true;
       })
-      .slice(0, MAX_UPDATES);
-  }, [events, partner, now]);
+      .slice(0, MAX_UPDATES - (banner ? 1 : 0));
+  }, [events, partner, now, banner]);
+
+  const dailyText = !banner
+    ? ""
+    : banner.kind === "result"
+      ? "See the result of the daily question"
+      : banner.kind === "partner-done"
+        ? `${PEOPLE[partner].name} already did the daily question`
+        : "New daily question is available";
 
   const [first, ...rest] = config.title.trim().split(/\s+/);
   const last = rest.pop();
@@ -91,8 +101,19 @@ export function Cover() {
         </span>
       </p>
 
-      {latest.length > 0 && (
+      {(latest.length > 0 || banner) && (
         <ul className={s.updates} aria-label={`Latest from ${PEOPLE[partner].name}`}>
+          {banner && (
+            <li>
+              <button type="button" className={s.update} data-daily onClick={() => open({ kind: "daily", day: banner.day })}>
+                <span className={s.updateDot} aria-hidden />
+                <span className={s.updateText}>{dailyText}</span>
+                <span className={s.updateTime} aria-hidden>
+                  →
+                </span>
+              </button>
+            </li>
+          )}
           {latest.map((e) => (
             <li key={e.id}>
               <button type="button" className={s.update} onClick={() => follow(e)} data-new={!e.seen[me] || undefined}>

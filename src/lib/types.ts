@@ -118,10 +118,24 @@ export type ActivityType =
   | "thinking_of_you"
   | "feeling_down"
   | "call_me"
+  | "daily_answered"
   | "mood_updated"
   | "location_updated"
   | "planner_item_assigned"
   | "moment_added";
+
+/** One person's answer to a daily question: their own answer and their guess for the other. */
+export interface DailyAnswer {
+  id: string;
+  day: string;
+  qid: string;
+  by: PersonKey;
+  answer: string;
+  guess: string;
+  createdAt: Date | null;
+  /** When this person first saw the results (both answered). */
+  resultSeenAt: Date | null;
+}
 
 export interface ActivityEvent {
   id: string;

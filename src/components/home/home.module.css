@@ -152,6 +152,21 @@
   border-color: var(--blush-ink);
 }
 
+.update[data-daily] {
+  color: var(--cobalt);
+  font-weight: 600;
+}
+
+.update[data-daily] .updateDot {
+  background: var(--cobalt);
+  border-color: var(--cobalt);
+}
+
+.update[data-daily] .updateTime {
+  color: var(--cobalt);
+  font-size: 14px;
+}
+
 .updateText {
   flex: 1;
   min-width: 0;

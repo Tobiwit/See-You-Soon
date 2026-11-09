@@ -91,6 +91,17 @@
   font-size: 19px;
 }
 
+.qName {
+  padding: 8px 8px 8px 0;
+  font-size: 15px;
+  line-height: 1.3;
+}
+
+.qKind {
+  color: var(--muted);
+  font-size: 12px;
+}
+
 .stopBtns {
   display: flex;
 }

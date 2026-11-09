@@ -42,6 +42,7 @@ export function Shell() {
       if (type === "postcard_created" && id) open({ kind: "postcard", id });
       else if ((type === "wishlist_item_added" || type === "planner_item_assigned") && id) open({ kind: "item", id });
       else if (type === "moment_added") goTo("memories");
+      else if (type === "daily_answered") open({ kind: "daily", day: id || undefined });
       else if (type === "location_updated") goTo("journey");
       else if (["thinking_of_you", "feeling_down", "call_me", "mood_updated"].includes(type)) goTo("between-us");
       // The notification's own event id: mark it seen.

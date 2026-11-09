@@ -9,6 +9,7 @@ import {
   orderBy,
   query,
   runTransaction,
+  where,
   type DocumentData,
   type FirestoreError,
   Timestamp,
@@ -27,6 +28,7 @@ import {
 import { fb } from "./firebase";
 import type {
   ActivityEvent,
+  DailyAnswer,
   FixedEvent,
   Moment,
   Mood,
@@ -54,6 +56,12 @@ export interface SpaceData {
   events: ActivityEvent[];
   members: Partial<Record<PersonKey, { push?: unknown }>>;
   moodPhotos: MoodPhoto[];
+  /** My own daily answers (the partner's are only readable once I've answered too). */
+  dailyMine: DailyAnswer[];
+  /** Who has answered which day — no content, readable by both. */
+  dailyDone: { day: string; by: PersonKey }[];
+  /** Toby's saved question order, or null for the default order. */
+  questionOrder: string[] | null;
 }
 
 /** A mood picture uploaded by `by`, shown to the other person when they pick `tier`. */
@@ -125,6 +133,9 @@ const EMPTY: SpaceData = {
   events: [],
   members: {},
   moodPhotos: [],
+  dailyMine: [],
+  dailyDone: [],
+  questionOrder: null,
 };
 
 export function SpaceProvider({ me, children }: { me: PersonKey; children: ReactNode }) {
@@ -373,6 +384,54 @@ export function SpaceProvider({ me, children }: { me: PersonKey; children: React
               // Newest first, so a fresh upload wins over an older doc for the same tier.
               .sort((a, b) => (b.createdAt?.getTime() ?? 0) - (a.createdAt?.getTime() ?? 0)),
           }),
+        onErr,
+      ),
+    );
+
+    unsubs.push(
+      onSnapshot(
+        query(col("daily"), where("by", "==", me)),
+        (s) =>
+          patch({
+            dailyMine: s.docs.map((d) => {
+              const x = d.data({ serverTimestamps: "estimate" });
+              return {
+                id: d.id,
+                day: str(x.day),
+                qid: str(x.qid),
+                by: me,
+                answer: str(x.answer),
+                guess: str(x.guess),
+                createdAt: toDate(x.createdAt),
+                resultSeenAt: toDate(x.resultSeenAt),
+              };
+            }),
+          }),
+        onErr,
+      ),
+    );
+
+    unsubs.push(
+      onSnapshot(
+        col("dailyDone"),
+        (s) =>
+          patch({
+            dailyDone: s.docs.flatMap((d) => {
+              const x = d.data();
+              return (x.by === "alex" || x.by === "toby") && typeof x.day === "string" ? [{ day: x.day, by: x.by as PersonKey }] : [];
+            }),
+          }),
+        onErr,
+      ),
+    );
+
+    unsubs.push(
+      onSnapshot(
+        doc(base, "meta", "questions"),
+        (snap) => {
+          const order = snap.data()?.order;
+          patch({ questionOrder: Array.isArray(order) ? order.filter((x): x is string => typeof x === "string") : null });
+        },
         onErr,
       ),
     );

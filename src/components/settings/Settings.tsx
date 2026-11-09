@@ -2,7 +2,8 @@
 
 import { useEffect, useState, useSyncExternalStore, type FormEvent } from "react";
 import { OWNER, PEOPLE, type RouteStop, type SpaceConfig } from "@/config/app";
-import { savePushSubscription, setCover, updateConfig } from "@/lib/actions";
+import { savePushSubscription, saveQuestionOrder, setCover, updateConfig } from "@/lib/actions";
+import { effectiveOrder, questionById, useDaily } from "@/lib/daily";
 import { diffDays, isDayKey } from "@/lib/dates";
 import type { PreparedImage } from "@/lib/images";
 import { useMe, useSession } from "@/lib/session";
@@ -50,6 +51,7 @@ export function Settings() {
           <CoverSetting />
           <TripSettings key={JSON.stringify(pickTrip(config))} />
           <RouteSettings key={JSON.stringify(config.route)} />
+          <QuestionSettings />
         </>
       ) : (
         <section className={s.block}>
@@ -158,7 +160,7 @@ function Notifications() {
     <section className={s.block}>
       <p className="eyebrow">Notifications</p>
       <p>
-        Get a quiet alert when {partner.name} sends a postcard, adds an idea, sends a signal or turns the mood up. Optional — the cover
+        Get a quiet alert when {partner.name} sends a postcard, adds an idea, sends a signal, answers the daily question or turns the mood up. Optional — the cover
         always shows what&apos;s new.
       </p>
       {perm === "unsupported" ? (
@@ -436,6 +438,103 @@ function RouteSettings() {
             Save route
           </button>
           <button type="button" className="link-btn" onClick={() => setStops(config.route)}>
+            Undo changes
+          </button>
+        </div>
+      )}
+    </section>
+  );
+}
+
+/** Owner only: reorder the questions that haven't been asked yet. */
+function QuestionSettings() {
+  const { order, todayIndex, remaining } = useDaily();
+  const upcoming = order.slice(Math.max(0, todayIndex + 1));
+  // Remount when the saved order or the day changes, so the editable list starts fresh.
+  return <QuestionOrderEditor key={`${todayIndex}|${upcoming.join(",")}`} upcoming={upcoming} asked={Math.max(0, Math.min(order.length, todayIndex + 1))} remaining={remaining} />;
+}
+
+function QuestionOrderEditor({ upcoming, asked, remaining }: { upcoming: string[]; asked: number; remaining: number }) {
+  const { toast } = useUI();
+  const { questionOrder } = useSpace();
+  const daily = useDaily();
+  const [list, setList] = useState(upcoming);
+  const [busy, setBusy] = useState(false);
+  const changed = list.join(",") !== upcoming.join(",");
+  const current = daily.todayIndex >= 0 ? daily.byDay.get(daily.today)?.question ?? null : null;
+
+  function move(i: number, d: -1 | 1) {
+    const j = i + d;
+    if (j < 0 || j >= list.length) return;
+    const next = [...list];
+    [next[i], next[j]] = [next[j], next[i]];
+    setList(next);
+  }
+
+  async function save() {
+    setBusy(true);
+    try {
+      // Re-derive what's already asked (incl. today's) at save time, then append the new order.
+      const full = effectiveOrder(questionOrder);
+      const locked = full.slice(0, Math.max(0, daily.todayIndex + 1));
+      await saveQuestionOrder([...locked, ...list.filter((id) => !locked.includes(id))]);
+      toast("Question order saved.", "ok");
+    } catch {
+      toast("Couldn't save the order.", "error");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <section className={s.block}>
+      <p className="eyebrow">Daily questions</p>
+      <p>
+        <strong>{remaining}</strong> {remaining === 1 ? "question" : "questions"} still to come · {asked} asked so far. New ones are added in{" "}
+        <code>src/config/questions.ts</code>.
+      </p>
+      {current && (
+        <p className="meta">
+          Today: {current.text}
+        </p>
+      )}
+      {list.length > 0 && (
+        <ol className={s.stops}>
+          {list.map((id, i) => {
+            const q = questionById(id);
+            if (!q) return null;
+            return (
+              <li key={id}>
+                <span className={`${s.stopName} ${s.qName}`}>
+                  {i + 1}. {q.text}
+                  <span className={s.qKind}>{q.kind === "choice" ? " · choice" : " · free"}</span>
+                </span>
+                <span className={s.stopBtns}>
+                  <button type="button" className="icon-btn" aria-label={`Move “${q.text}” earlier`} onClick={() => move(i, -1)} disabled={i === 0}>
+                    ↑
+                  </button>
+                  <button
+                    type="button"
+                    className="icon-btn"
+                    aria-label={`Move “${q.text}” later`}
+                    onClick={() => move(i, 1)}
+                    disabled={i === list.length - 1}
+                  >
+                    ↓
+                  </button>
+                </span>
+              </li>
+            );
+          })}
+        </ol>
+      )}
+      {changed && (
+        <div className={s.row}>
+          <button type="button" className="btn btn-primary" onClick={() => void save()} disabled={busy}>
+            {busy && <span className="spinner" />}
+            Save order
+          </button>
+          <button type="button" className="link-btn" onClick={() => setList(upcoming)}>
             Undo changes
           </button>
         </div>

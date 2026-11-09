@@ -13,6 +13,8 @@ export type SheetSpec =
   | { kind: "moment"; id: string }
   | { kind: "travel"; id?: string; date?: string }
   | { kind: "fixed"; id: string }
+  | { kind: "daily"; day?: string }
+  | { kind: "daily-archive" }
   | { kind: "settings" };
 
 export type SectionId = "home" | "wishlist" | "planner" | "memories";
