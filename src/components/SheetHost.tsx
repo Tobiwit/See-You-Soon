@@ -11,6 +11,7 @@ import { PostcardView } from "./memories/PostcardView";
 import { PostcardComposer } from "./memories/PostcardComposer";
 import { MomentForm, MomentView } from "./memories/Moments";
 import { DailyArchive, DailySheet } from "./memories/Daily";
+import { IdeaMap } from "./wishlist/IdeaMap";
 import { Settings } from "./settings/Settings";
 
 /** Renders the top-most sheet of the stack. */
@@ -44,6 +45,8 @@ export function SheetHost() {
       return <DailySheet key={k} day={top.day} />;
     case "daily-archive":
       return <DailyArchive key={k} />;
+    case "idea-map":
+      return <IdeaMap key={k} />;
     case "settings":
       return <Settings key={k} />;
   }

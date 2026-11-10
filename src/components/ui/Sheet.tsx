@@ -16,6 +16,7 @@ export function Sheet({
   hideTitle = false,
   footer,
   tone = "paper",
+  flush = false,
 }: {
   title: string;
   onClose: () => void;
@@ -24,6 +25,8 @@ export function Sheet({
   hideTitle?: boolean;
   footer?: ReactNode;
   tone?: "paper" | "ink";
+  /** No body padding or scrolling — the child fills the sheet (e.g. a map). */
+  flush?: boolean;
 }) {
   const panel = useRef<HTMLDivElement>(null);
   const titleId = useId();
@@ -85,7 +88,7 @@ export function Sheet({
             </svg>
           </button>
         </header>
-        <div className={s.sheetBody}>{children}</div>
+        <div className={`${s.sheetBody} ${flush ? s.flushBody : ""}`}>{children}</div>
         {footer && <footer className={s.sheetFoot}>{footer}</footer>}
       </div>
     </div>

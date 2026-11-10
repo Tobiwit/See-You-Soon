@@ -65,6 +65,14 @@
   padding: 12px var(--gutter) calc(24px + var(--safe-bottom));
 }
 
+.flushBody {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  padding: 0;
+}
+
 .sheetFoot {
   flex: none;
   display: flex;

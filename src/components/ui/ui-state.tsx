@@ -15,6 +15,7 @@ export type SheetSpec =
   | { kind: "fixed"; id: string }
   | { kind: "daily"; day?: string }
   | { kind: "daily-archive" }
+  | { kind: "idea-map" }
   | { kind: "settings" };
 
 export type SectionId = "home" | "wishlist" | "planner" | "memories";

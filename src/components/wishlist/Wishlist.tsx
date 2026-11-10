@@ -186,6 +186,23 @@ export function Wishlist() {
           ))}
         </div>
       )}
+
+      {items.length > 0 && (
+        <div className={s.exploreRow}>
+          <button type="button" className="btn btn-block" onClick={() => open({ kind: "idea-map" })}>
+            <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden>
+              <path
+                d="M1.5 3.5 5.5 2l5 1.8 4-1.5v10.2l-4 1.5-5-1.8-4 1.5V3.5ZM5.5 2v10.2M10.5 3.8V14"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.4"
+                strokeLinejoin="round"
+              />
+            </svg>
+            Explore on map
+          </button>
+        </div>
+      )}
     </section>
   );
 }

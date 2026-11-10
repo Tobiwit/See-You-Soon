@@ -1,0 +1,239 @@
+.map {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  background: var(--cobalt-tint);
+  border-top: 1px solid var(--line);
+  cursor: grab;
+}
+
+.map:active {
+  cursor: grabbing;
+}
+
+.svg {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+.sea {
+  fill: var(--cobalt-tint);
+}
+
+.other {
+  fill: var(--paper-2);
+  stroke: #c9bfac;
+  stroke-width: 0.8;
+}
+
+.vietnam {
+  fill: #fbf8f2;
+  stroke: var(--ink);
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+}
+
+.layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.country {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: #a89f8e;
+  white-space: nowrap;
+}
+
+.city {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transform: translate(-3px, -50%);
+  font-family: var(--f-serif);
+  font-style: italic;
+  font-size: 12px;
+  color: var(--ink-2);
+  white-space: nowrap;
+  text-shadow:
+    0 0 2px #fbf8f2,
+    0 0 4px #fbf8f2;
+}
+
+.city[data-major] {
+  font-size: 13.5px;
+  color: var(--ink);
+}
+
+.cityDot {
+  flex: none;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--ink-2);
+}
+
+/* ---------- ideas ---------- */
+.dot {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
+  padding: 0;
+  border: 2.5px solid #fbf8f2;
+  border-radius: 50%;
+  background: var(--cobalt);
+  color: var(--paper);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: 0 2px 6px rgba(22, 20, 15, 0.3);
+  pointer-events: auto;
+  touch-action: none;
+}
+
+.dot[data-many] {
+  width: 26px;
+  height: 26px;
+  margin: -13px 0 0 -13px;
+}
+
+.dot[data-visited] {
+  background: var(--blush-ink);
+}
+
+/* Larger invisible hit area for small dots. */
+.dot::after {
+  content: "";
+  position: absolute;
+  inset: -12px;
+  border-radius: 50%;
+}
+
+.cluster {
+  position: absolute;
+  display: grid;
+  pointer-events: none;
+}
+
+.tile {
+  position: relative;
+  display: block;
+  padding: 0;
+  overflow: hidden;
+  border: 2.5px solid #fbf8f2;
+  border-radius: 12px;
+  background: var(--paper-2);
+  box-shadow: 0 4px 12px -2px rgba(22, 20, 15, 0.35);
+  pointer-events: auto;
+  touch-action: none;
+  animation: pop 0.25s var(--ease);
+}
+
+.tile img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.tile[data-visited] {
+  border-color: var(--blush);
+}
+
+.tick {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--blush-ink);
+  color: var(--paper);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+@keyframes pop {
+  from {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+/* ---------- chrome ---------- */
+.controls {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: grid;
+  gap: 6px;
+}
+
+.ctrl {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1.5px solid var(--ink);
+  background: #fbf8f2;
+  color: var(--ink);
+  font-size: 20px;
+  line-height: 1;
+  touch-action: manipulation;
+}
+
+.ctrl:active {
+  background: var(--cobalt-tint);
+}
+
+.loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  font-family: var(--f-serif);
+  font-style: italic;
+  font-size: 19px;
+  color: var(--ink-2);
+}
+
+.foot {
+  flex: none;
+  margin: 0;
+  padding: 10px var(--gutter) calc(12px + var(--safe-bottom));
+  border-top: 1px solid var(--line);
+  font-size: 12.5px;
+  color: var(--ink-2);
+}
+
+.hint {
+  color: var(--muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tile {
+    animation: none;
+  }
+}
