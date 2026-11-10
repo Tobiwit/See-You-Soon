@@ -192,17 +192,6 @@ export function ItemForm({ id }: { id?: string }) {
         </div>
 
         <div className="field">
-          <span className="label">Photo</span>
-          <ImageChooser
-            value={image}
-            onChange={setImage}
-            original={original}
-            searchSeed={[title, place?.name].filter(Boolean).join(" ")}
-            unsplashEnabled={unsplashEnabled}
-          />
-        </div>
-
-        <div className="field">
           <label htmlFor="f-link">Link</label>
           <input
             id="f-link"
@@ -217,6 +206,17 @@ export function ItemForm({ id }: { id?: string }) {
             aria-invalid={Boolean(link) && urlResult === "invalid"}
           />
           {link && urlResult === "invalid" && <span className="err">{errors.link}</span>}
+        </div>
+
+        <div className="field">
+          <span className="label">Photo</span>
+          <ImageChooser
+            value={image}
+            onChange={setImage}
+            original={original}
+            searchSeed={[title, place?.name].filter(Boolean).join(" ")}
+            unsplashEnabled={unsplashEnabled}
+          />
         </div>
 
         {conflict && (

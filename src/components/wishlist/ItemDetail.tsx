@@ -58,6 +58,21 @@ export function ItemDetail({ id }: { id: string }) {
     }
   }
 
+  async function share() {
+    // Opens the idea straight away for the other person (they're signed in on their phone).
+    const link = `${location.origin}/?open=wishlist_item_added:${item!.id}`;
+    const text = `${item!.title} · ${item!.placeName}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: item!.title, text, url: link });
+      } catch {
+        // Closing the share sheet is fine.
+      }
+      return;
+    }
+    window.open(`https://wa.me/?text=${encodeURIComponent(`${text}\n${link}`)}`, "_blank", "noopener,noreferrer");
+  }
+
   async function unvisit() {
     setBusy("visited");
     try {
@@ -113,11 +128,26 @@ export function ItemDetail({ id }: { id: string }) {
             {linkIsMap ? "Open in Maps" : "Open link"} ↗
           </a>
         )}
-        {!linkIsMap && (
-          <a className="btn" href={mapsUrl(item.placeName, place?.lat, place?.lon)} target="_blank" rel="noreferrer noopener">
-            {place?.lat !== undefined ? "Show city on map" : "Search in Maps"} ↗
-          </a>
-        )}
+        <div className={s.actionPair}>
+          {!linkIsMap && (
+            <a className="btn" href={mapsUrl(item.placeName, place?.lat, place?.lon)} target="_blank" rel="noreferrer noopener">
+              {place?.lat !== undefined ? "Show city on map" : "Search in Maps"} ↗
+            </a>
+          )}
+          <button type="button" className="btn" onClick={() => void share()} aria-label={`Share “${item.title}”`}>
+            <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden>
+              <path
+                d="M8 10V2.5M5 5.2 8 2.2l3 3M4.5 7.5H3.8c-.7 0-1.3.6-1.3 1.3v4.4c0 .7.6 1.3 1.3 1.3h8.4c.7 0 1.3-.6 1.3-1.3V8.8c0-.7-.6-1.3-1.3-1.3h-.7"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            Share
+          </button>
+        </div>
         <button type="button" className="btn" onClick={() => open({ kind: "assign", id: item.id })}>
           {item.plannedDate ? "Move to another day" : "Add to day…"}
         </button>
