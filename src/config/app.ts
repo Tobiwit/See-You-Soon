@@ -37,6 +37,24 @@ export const DEFAULT_TRAVELLER_LOCATION = {
  * Where the one who stays home is until the reunion — used for the distance line.
  * From the reunion time on, you're together and the distance is 0 km.
  */
+/**
+ * Toby's travel plan for "Toby Time". Each stop lasts until the next one starts; `until` is
+ * the local wall-clock time in that `tz`. A stop without `place` is a flight ("In the air").
+ */
+export interface ItineraryStop {
+  place?: string;
+  tz: string;
+  until?: { day: string; time: string; tz: string };
+}
+
+export const TOBY_ITINERARY: ItineraryStop[] = [
+  { place: "Regensburg", tz: "Europe/Berlin", until: { day: "2026-12-06", time: "13:30", tz: "Europe/Berlin" } },
+  { tz: "Asia/Shanghai", until: { day: "2026-12-07", time: "07:25", tz: "Asia/Shanghai" } },
+  { place: "Shanghai", tz: "Asia/Shanghai", until: { day: "2026-12-07", time: "11:00", tz: "Asia/Shanghai" } },
+  { tz: "Asia/Ho_Chi_Minh", until: { day: "2026-12-07", time: "14:00", tz: "Asia/Ho_Chi_Minh" } },
+  { place: "Hanoi", tz: "Asia/Ho_Chi_Minh" },
+];
+
 export const HOME_BASE = { name: "Regensburg", lat: 49.0134, lon: 12.1016 } as const;
 
 export const partnerOf = (k: PersonKey): PersonKey => (k === "alex" ? "toby" : "alex");

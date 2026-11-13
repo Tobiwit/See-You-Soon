@@ -10,6 +10,7 @@ import { useNow, useSpace } from "@/lib/space";
 import { PlaceSearch, type PlacePick } from "../ui/PlaceSearch";
 import { useUI } from "../ui/ui-state";
 import { useReveal } from "../ui/useReveal";
+import { Clocks } from "./Clocks";
 import { JourneyMap } from "./JourneyMap";
 import s from "./home.module.css";
 
@@ -226,6 +227,8 @@ export function Journey() {
             <p className={s.locNote}>Only shared when {traveller} taps “Update location” — never tracked in the background.</p>
           )}
         </div>
+
+        <Clocks />
       </div>
     </section>
   );

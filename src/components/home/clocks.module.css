@@ -1,0 +1,308 @@
+.clocks {
+  margin-top: var(--s5);
+}
+
+.stage[data-hidden] {
+  visibility: hidden;
+}
+
+.pair {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 1px minmax(0, 1fr);
+  align-items: stretch;
+  gap: 6px;
+}
+
+.divider {
+  background: var(--line);
+  margin: 6px 0;
+}
+
+.face {
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: 8px;
+  padding: 6px 0 4px;
+}
+
+.label {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+
+.place {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0;
+  max-width: 100%;
+  font-family: var(--f-serif);
+  font-style: italic;
+  font-size: 14px;
+  color: var(--ink-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.plane {
+  flex: none;
+  color: var(--cobalt);
+  transform: rotate(45deg);
+}
+
+/* ---------- segment digits ---------- */
+.digits {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 40px;
+}
+
+.digits[data-size="l"] {
+  gap: 5px;
+  height: 64px;
+}
+
+/* Words (IN AIR) use the same glyph size as the time, just a little tighter. */
+.digits[data-word] {
+  gap: 2px;
+}
+
+.space {
+  width: 5px;
+}
+
+/* Same 40 px as the time; only shrinks on phones narrower than ~375 px so it never overflows. */
+.digits[data-word] .glyph {
+  height: min(40px, calc((100vw - 110px) / 5.2));
+}
+
+.glyph {
+  height: 100%;
+  width: auto;
+}
+
+.segOn {
+  fill: var(--cobalt);
+}
+
+.segOff {
+  fill: var(--cobalt);
+  opacity: 0.07;
+}
+
+.colon {
+  display: grid;
+  gap: 9px;
+  padding: 0 1px;
+}
+
+.digits[data-size="l"] .colon {
+  gap: 15px;
+  padding: 0 3px;
+}
+
+.colon i {
+  display: block;
+  width: 4px;
+  height: 4px;
+  background: var(--cobalt);
+  transform: skewX(-6deg);
+  transition: opacity 0.15s;
+}
+
+/* Driven by the shared clock tick, so every colon blinks at the same moment. */
+.colon[data-off] i {
+  opacity: 0.15;
+}
+
+.digits[data-size="l"] .colon i {
+  width: 6px;
+  height: 6px;
+}
+
+/* ---------- merged ---------- */
+.merged .face {
+  gap: 10px;
+  padding: 4px 0;
+}
+
+.merged .label {
+  color: var(--blush-ink);
+}
+
+.merged .place {
+  font-size: 16px;
+}
+
+.merged[data-pop] {
+  animation: pop 0.6s cubic-bezier(0.2, 1.5, 0.4, 1);
+}
+
+@keyframes pop {
+  from {
+    transform: scale(0.82);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+.metBtn {
+  margin-top: 10px;
+}
+
+/* ---------- the heart ---------- */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  pointer-events: none;
+}
+
+.heart {
+  position: fixed;
+  width: 100px;
+  height: 92px;
+  margin: -46px 0 0 -50px;
+  fill: var(--cobalt);
+  transform-origin: 50% 50%;
+}
+
+.overlay[data-phase="grow"] .heart {
+  animation: grow 1.6s cubic-bezier(0.55, 0, 0.7, 0.2) forwards;
+}
+
+.overlay[data-phase="snap"] .heart {
+  animation: snap 0.52s cubic-bezier(0.3, 1.4, 0.5, 1) forwards;
+}
+
+@keyframes grow {
+  0% {
+    transform: scale(0.5);
+  }
+  12% {
+    transform: scale(1.4);
+  }
+  20% {
+    transform: scale(1.15);
+  }
+  100% {
+    transform: scale(var(--fill));
+  }
+}
+
+@keyframes snap {
+  from {
+    transform: scale(var(--fill));
+    opacity: 1;
+  }
+  to {
+    transform: scale(0.2);
+    opacity: 0;
+  }
+}
+
+/* The two clocks ride along inside the heart while it grows. */
+.ghost {
+  position: fixed;
+  display: grid;
+  align-content: center;
+  animation: ride 1.6s ease-in forwards;
+}
+
+@keyframes ride {
+  0% {
+    transform: none;
+  }
+  70% {
+    transform: scale(1.06);
+  }
+  100% {
+    transform: scale(0.94);
+  }
+}
+
+/* No boxes any more, so the riding clocks turn cream as the blue heart grows behind them. */
+.ghost .segOn {
+  animation: segToPaper 1.6s ease forwards;
+}
+
+.ghost .segOff {
+  animation: offToPaper 1.6s ease forwards;
+}
+
+.ghost .colon i {
+  animation: bgToPaper 1.6s ease forwards;
+}
+
+.ghost .label,
+.ghost .place,
+.ghost .plane {
+  animation: textToPaper 1.6s ease forwards;
+}
+
+.ghost .divider {
+  animation: bgToPaper 1.6s ease forwards;
+  opacity: 0.4;
+}
+
+@keyframes segToPaper {
+  0%,
+  8% {
+    fill: var(--cobalt);
+  }
+  22%,
+  100% {
+    fill: var(--paper);
+  }
+}
+
+@keyframes offToPaper {
+  0%,
+  8% {
+    fill: var(--cobalt);
+    opacity: 0.07;
+  }
+  22%,
+  100% {
+    fill: var(--paper);
+    opacity: 0.14;
+  }
+}
+
+@keyframes bgToPaper {
+  0%,
+  8% {
+    background: var(--cobalt);
+  }
+  22%,
+  100% {
+    background: var(--paper);
+  }
+}
+
+@keyframes textToPaper {
+  0%,
+  8% {
+    color: var(--ink-2);
+  }
+  22%,
+  100% {
+    color: var(--paper);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .merged[data-pop] {
+    animation: none;
+  }
+}

@@ -108,6 +108,8 @@ export interface SharedLocation {
   countryCode?: string;
   lat?: number;
   lon?: number;
+  /** The sharer's phone time zone (only saved for GPS shares). */
+  tz?: string;
   source: "gps" | "manual" | "default";
   updatedAt: When;
 }

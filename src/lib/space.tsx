@@ -63,6 +63,8 @@ export interface SpaceData {
   dailyDone: { day: string; by: PersonKey }[];
   /** Toby's saved question order, or null for the default order. */
   questionOrder: string[] | null;
+  /** When each of you pressed "We met" (per person). */
+  met: Partial<Record<PersonKey, Date>>;
 }
 
 /** A mood picture uploaded by `by`, shown to the other person when they pick `tier`. */
@@ -137,6 +139,7 @@ const EMPTY: SpaceData = {
   dailyMine: [],
   dailyDone: [],
   questionOrder: null,
+  met: {},
 };
 
 export function SpaceProvider({ me, children }: { me: PersonKey; children: ReactNode }) {
@@ -313,6 +316,22 @@ export function SpaceProvider({ me, children }: { me: PersonKey; children: React
 
     unsubs.push(
       onSnapshot(
+        doc(base, "status", "met"),
+        (s) => {
+          const x = s.data({ serverTimestamps: "estimate" }) ?? {};
+          const met: Partial<Record<PersonKey, Date>> = {};
+          for (const k of ["alex", "toby"] as const) {
+            const d = toDate(x[k]);
+            if (d) met[k] = d;
+          }
+          patch({ met });
+        },
+        onErr,
+      ),
+    );
+
+    unsubs.push(
+      onSnapshot(
         doc(base, "status", "location"),
         (s) => {
           const x = s.data({ serverTimestamps: "estimate" });
@@ -325,6 +344,7 @@ export function SpaceProvider({ me, children }: { me: PersonKey; children: React
                   countryCode: x.countryCode,
                   lat: x.lat,
                   lon: x.lon,
+                  tz: typeof x.tz === "string" ? x.tz : undefined,
                   source: x.source === "gps" ? "gps" : "manual",
                   updatedAt: toDate(x.updatedAt),
                 }

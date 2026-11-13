@@ -488,6 +488,14 @@ export async function shareLocation(
   const batch = writeBatch(fb().db);
   const data: Record<string, unknown> = { name: loc.name.slice(0, 80), source: loc.source, updatedAt: serverTimestamp(), by: me };
   for (const k of ["city", "country", "countryCode"] as const) if (loc[k]) data[k] = loc[k];
+  // With GPS the phone is really there, so its own time zone is the most accurate for "Alex Time".
+  if (loc.source === "gps") {
+    try {
+      data.tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    } catch {
+      /* country lookup is used instead */
+    }
+  }
   // ~1 km precision is plenty for a "currently in" line and the journey map.
   if (typeof loc.lat === "number" && typeof loc.lon === "number") {
     data.lat = Math.round(loc.lat * 100) / 100;
@@ -497,6 +505,11 @@ export async function shareLocation(
   addEvent(batch, me, "location_updated", null, loc.city || loc.name);
   await batch.commit();
   notifyPartner("location_updated", loc.city || loc.name, null);
+}
+
+/** "We met" — saved per person, so it follows you to your other devices. */
+export async function markMet(me: PersonKey) {
+  await setDoc(ref("status", "met"), { [me]: serverTimestamp() }, { merge: true });
 }
 
 /* ------------------------------------------------------------------ */
