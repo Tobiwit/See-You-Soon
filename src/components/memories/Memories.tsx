@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { PEOPLE } from "@/config/app";
+import { PEOPLE, type PersonKey } from "@/config/app";
 import { dayKeyInTz, formatDay } from "@/lib/dates";
 import { useMe } from "@/lib/session";
 import { useSpace } from "@/lib/space";
@@ -15,6 +15,18 @@ export function Memories() {
   const { postcards, moments, items, config, loaded } = useSpace();
   const { key: me, partner } = useMe();
   const { open } = useUI();
+
+  // One stack per sender. Postcards arrive newest first, so the sender who wrote
+  // most recently comes first and each stack's first card is its newest.
+  const stacks = useMemo(() => {
+    const bySender = new Map<PersonKey, Postcard[]>();
+    for (const p of postcards) {
+      const list = bySender.get(p.by);
+      if (list) list.push(p);
+      else bySender.set(p.by, [p]);
+    }
+    return [...bySender.entries()].map(([by, cards]) => ({ by, top: cards[0], older: cards.slice(1) }));
+  }, [postcards]);
 
   // Moments + visited wishlist items, newest day first. Visited items are linked, not copied.
   const timeline = useMemo(() => {
@@ -55,13 +67,28 @@ export function Memories() {
       {loaded && postcards.length === 0 ? (
         <p className={s.empty}>No postcards yet. The first one is yours to send.</p>
       ) : (
-        <ul className={s.cards}>
-          {postcards.map((p, i) => (
-            <li key={p.id} style={{ ["--tilt" as string]: `${i % 2 ? 1.1 : -0.9}deg` }}>
-              <PostcardFront postcard={p} me={me} onOpen={() => open({ kind: "postcard", id: p.id })} />
-            </li>
+        <div className={s.stacks}>
+          {stacks.map((st, i) => (
+            <section key={st.by} className={s.stackGroup} aria-label={`Postcards from ${PEOPLE[st.by]?.name ?? ""}`}>
+              <div
+                className={s.stack}
+                data-depth={Math.min(2, st.older.length) || undefined}
+                style={{ ["--tilt" as string]: `${i % 2 ? 1.1 : -0.9}deg` }}
+              >
+                <PostcardFront postcard={st.top} me={me} onOpen={() => open({ kind: "postcard", id: st.top.id })} />
+              </div>
+              {st.older.length > 0 && (
+                <ul className={s.minis} aria-label="Older postcards">
+                  {st.older.map((p) => (
+                    <li key={p.id}>
+                      <MiniPostcard postcard={p} me={me} onOpen={() => open({ kind: "postcard", id: p.id })} />
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
           ))}
-        </ul>
+        </div>
       )}
 
       <DailyBlock />
@@ -112,6 +139,32 @@ export function Memories() {
         )}
       </div>
     </section>
+  );
+}
+
+/** Small version of an older postcard, three to a row. */
+function MiniPostcard({ postcard: p, me, onOpen }: { postcard: Postcard; me: string; onOpen: () => void }) {
+  const unread = p.to === me && !p.readAt;
+  const date = p.createdAt ? p.createdAt.toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : "";
+  return (
+    <button
+      type="button"
+      className={s.mini}
+      onClick={onOpen}
+      aria-label={`Postcard${p.title ? `: ${p.title}` : ""}, ${date}${unread ? ", unread" : ""}`}
+    >
+      <span className={s.miniFace}>
+        {p.image ? (
+          <Photo image={p.image} alt="" />
+        ) : (
+          <span className={s.miniType} aria-hidden>
+            <span className="display">{p.title || "Postcard"}</span>
+          </span>
+        )}
+        {unread && <span className={s.miniUnread} aria-hidden />}
+      </span>
+      <span className={s.miniDate}>{date}</span>
+    </button>
   );
 }
 
