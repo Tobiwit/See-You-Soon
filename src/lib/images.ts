@@ -1,7 +1,7 @@
 "use client";
 
-import { doc, getDoc } from "firebase/firestore";
-import { SPACE_ID } from "@/config/app";
+import { collection, doc, getDoc, onSnapshot, serverTimestamp, setDoc } from "firebase/firestore";
+import { SPACE_ID, type PersonKey } from "@/config/app";
 import { fb } from "./firebase";
 import type { ImageRef } from "./types";
 
@@ -16,12 +16,15 @@ export interface PreparedImage {
   id: string;
   full: string; // data URL
   thumb: string;
+  /** ~48 px preview (a couple of KB) shown in low data mode. */
+  tiny: string;
   w: number;
   h: number;
 }
 
 const FULL = { max: 1600, budget: 880_000 };
 const THUMB = { max: 640, budget: 110_000 };
+const TINY = { max: 48, budget: 4_000 };
 
 async function decode(file: Blob): Promise<{ source: CanvasImageSource; w: number; h: number; close: () => void }> {
   if (typeof createImageBitmap === "function") {
@@ -77,7 +80,8 @@ export async function prepareImage(file: File): Promise<PreparedImage> {
   try {
     const full = encode(source, w, h, FULL.max, FULL.budget);
     const thumb = encode(source, w, h, THUMB.max, THUMB.budget);
-    return { id: crypto.randomUUID().replace(/-/g, ""), full: full.data, thumb: thumb.data, w: full.w, h: full.h };
+    const tiny = encode(source, w, h, TINY.max, TINY.budget);
+    return { id: crypto.randomUUID().replace(/-/g, ""), full: full.data, thumb: thumb.data, tiny: tiny.data, w: full.w, h: full.h };
   } finally {
     close();
   }
@@ -112,6 +116,7 @@ export function loadImage(ref: ImageRef, variant: "thumb" | "full"): Promise<str
         const data = snap.get("data");
         if (typeof data !== "string") throw new Error("Photo not found");
         memory.set(key, data);
+        void ensureTiny(ref.id, data);
         return data;
       })
       .finally(() => inflight.delete(key));
@@ -124,4 +129,85 @@ export function loadImage(ref: ImageRef, variant: "thumb" | "full"): Promise<str
 export function primeImage(p: PreparedImage) {
   memory.set(`full:${p.id}`, p.full);
   memory.set(`thumb:${p.id}`, p.thumb);
+  tinies.set(p.id, p.tiny);
+  emitTinies();
+}
+
+/* ------------------------------------------------------------------ */
+/* Tiny previews (low data mode)                                       */
+/* ------------------------------------------------------------------ */
+
+// All tiny previews are synced once and kept in the offline cache (~2 KB each), so low data
+// mode can show every photo without downloading the real one.
+const tinies = new Map<string, string>();
+const tinyListeners = new Set<() => void>();
+let tinyVersion = 0;
+let tiniesReady = false;
+let tinyAuthor: PersonKey | null = null;
+const tinyAttempted = new Set<string>();
+
+function emitTinies() {
+  tinyVersion++;
+  tinyListeners.forEach((l) => l());
+}
+
+export function subscribeTinies(l: () => void) {
+  tinyListeners.add(l);
+  return () => {
+    tinyListeners.delete(l);
+  };
+}
+export const tinyVersionSnapshot = () => tinyVersion;
+
+/** Starts syncing tiny previews (called once the space is open). Returns an unsubscribe. */
+export function startTinySync(me: PersonKey) {
+  tinyAuthor = me;
+  return onSnapshot(
+    collection(fb().db, "spaces", SPACE_ID, "tinies"),
+    (s) => {
+      for (const d of s.docs) {
+        const data = d.get("data");
+        if (typeof data === "string") tinies.set(d.id, data);
+      }
+      tiniesReady = true;
+      emitTinies();
+    },
+    () => {},
+  );
+}
+
+/** The low-data stand-in for a photo: a synced tiny preview, or a very small Unsplash size. */
+export function tinySrc(ref: ImageRef | null | undefined): string | null {
+  if (!ref) return null;
+  if (ref.kind === "unsplash") {
+    try {
+      const u = new URL(ref.thumb);
+      u.searchParams.set("w", "48");
+      u.searchParams.set("q", "40");
+      return u.toString();
+    } catch {
+      return null;
+    }
+  }
+  return tinies.get(ref.id) ?? null;
+}
+
+/**
+ * Photos uploaded before tiny previews existed get one the first time anyone loads them
+ * in full quality. Create-only on the server, so a race between both phones is harmless.
+ */
+async function ensureTiny(id: string, dataUrl: string) {
+  if (!tiniesReady || !tinyAuthor || tinies.has(id) || tinyAttempted.has(id)) return;
+  tinyAttempted.add(id);
+  try {
+    const img = new Image();
+    img.src = dataUrl;
+    await img.decode();
+    const { data } = encode(img, img.naturalWidth, img.naturalHeight, TINY.max, TINY.budget);
+    tinies.set(id, data);
+    emitTinies();
+    await setDoc(doc(fb().db, "spaces", SPACE_ID, "tinies", id), { data, by: tinyAuthor, createdAt: serverTimestamp() });
+  } catch {
+    // Already exists or offline — someone else (or a later load) will fill it in.
+  }
 }

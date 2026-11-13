@@ -138,6 +138,20 @@
   animation: fade 0.4s ease;
 }
 
+/* Low data mode: a ~48 px preview, blurred so it reads as soft rather than pixelated. */
+.photoTiny {
+  filter: blur(7px) saturate(1.05);
+  transform: scale(1.12);
+  animation: none;
+}
+
+.photoLow {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, var(--paper-2), #ded5c4);
+}
+
 .photoPending {
   display: block;
   width: 100%;

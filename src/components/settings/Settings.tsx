@@ -4,6 +4,7 @@ import { useEffect, useState, useSyncExternalStore, type FormEvent } from "react
 import { OWNER, PEOPLE, type RouteStop, type SpaceConfig } from "@/config/app";
 import { savePushSubscription, saveQuestionOrder, setCover, updateConfig } from "@/lib/actions";
 import { effectiveOrder, questionById, useDaily } from "@/lib/daily";
+import { lowDataOnLaunch, setLowDataOnLaunch } from "@/lib/data-mode";
 import { diffDays, isDayKey } from "@/lib/dates";
 import type { PreparedImage } from "@/lib/images";
 import { useMe, useSession } from "@/lib/session";
@@ -46,6 +47,7 @@ export function Settings() {
 
       <InstallHint />
       <Notifications />
+      <DataSaving />
       {me.key === OWNER ? (
         <>
           <CoverSetting />
@@ -539,6 +541,31 @@ function QuestionOrderEditor({ upcoming, asked, remaining }: { upcoming: string[
           </button>
         </div>
       )}
+    </section>
+  );
+}
+
+/** Per device: start each launch in low data mode (tiny blurred photo previews). */
+function DataSaving() {
+  const [on, setOn] = useState(lowDataOnLaunch);
+  return (
+    <section className={s.block}>
+      <p className="eyebrow">Data saving</p>
+      <label className={s.check}>
+        <input
+          type="checkbox"
+          checked={on}
+          onChange={(e) => {
+            setOn(e.target.checked);
+            setLowDataOnLaunch(e.target.checked);
+          }}
+        />
+        <span>Start in low data mode</span>
+      </label>
+      <p className="meta">
+        Photos show as small, blurred previews until you tap the cloud in the side bar. Only this phone is affected — it can&apos;t tell
+        Wi-Fi from mobile data, so it&apos;s up to you.
+      </p>
     </section>
   );
 }

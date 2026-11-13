@@ -26,6 +26,7 @@ import {
   type SpaceConfig,
 } from "@/config/app";
 import { fb } from "./firebase";
+import { startTinySync } from "./images";
 import type {
   ActivityEvent,
   DailyAnswer,
@@ -387,6 +388,8 @@ export function SpaceProvider({ me, children }: { me: PersonKey; children: React
         onErr,
       ),
     );
+
+    unsubs.push(startTinySync(me));
 
     unsubs.push(
       onSnapshot(

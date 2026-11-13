@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { setLowData, useLowData } from "@/lib/data-mode";
 import { useMe } from "@/lib/session";
 import { useSpace } from "@/lib/space";
 import { useDayContext } from "./planner/plan-utils";
@@ -18,7 +19,8 @@ const SECTIONS: { id: SectionId; label: string }[] = [
 
 /** Fixed vertical "spine" navigation. Highlights the section currently in view. */
 export function Rail() {
-  const { goTo, open } = useUI();
+  const { goTo, open, toast } = useUI();
+  const low = useLowData();
   const { key: me } = useMe();
   const { postcards } = useSpace();
   const { tripUnderway } = useDayContext();
@@ -75,6 +77,28 @@ export function Rail() {
       </ul>
       <div className={s.railTools}>
         <ThinkingButton compact />
+        <button
+          type="button"
+          className={`icon-btn ${s.railTool} ${s.cloud}`}
+          aria-pressed={!low}
+          aria-label={low ? "Low data mode — load photos in full quality" : "Photos in full quality — switch to low data mode"}
+          data-full={!low || undefined}
+          onClick={() => {
+            setLowData(!low);
+            toast(low ? "Loading photos in full quality." : "Low data mode: photos stay small.");
+          }}
+        >
+          <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden>
+            <path
+              d="M5.6 15.5h8.9a3.4 3.4 0 0 0 .4-6.8A4.8 4.8 0 0 0 5.6 7.6a4 4 0 0 0 0 7.9Z"
+              fill={low ? "none" : "currentColor"}
+              stroke="currentColor"
+              strokeWidth="1.4"
+              strokeLinejoin="round"
+            />
+            {low && <path d="M10 9v4.2M8.2 11.6 10 13.4l1.8-1.8" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />}
+          </svg>
+        </button>
         <button type="button" className={`icon-btn ${s.railTool}`} aria-label="Settings" onClick={() => open({ kind: "settings" })}>
           <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden>
             <path d="M2 5h14M2 9h14M2 13h14" stroke="currentColor" strokeWidth="1.3" />

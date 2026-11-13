@@ -114,6 +114,10 @@
   color: var(--ink-2);
 }
 
+.cloud[data-full] {
+  color: var(--cobalt);
+}
+
 @media (max-height: 560px) {
   .railItem {
     min-height: 64px;

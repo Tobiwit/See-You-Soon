@@ -33,12 +33,14 @@ function putImage(batch: WriteBatch, img: PreparedImage, by: PersonKey) {
   primeImage(img);
   batch.set(ref("images", img.id), { data: img.full, w: img.w, h: img.h, by, createdAt: serverTimestamp() });
   batch.set(ref("thumbs", img.id), { data: img.thumb, by, createdAt: serverTimestamp() });
+  batch.set(ref("tinies", img.id), { data: img.tiny, by, createdAt: serverTimestamp() });
 }
 
 function dropImage(batch: WriteBatch, image: ImageRef | null | undefined) {
   if (image?.kind === "upload") {
     batch.delete(ref("images", image.id));
     batch.delete(ref("thumbs", image.id));
+    batch.delete(ref("tinies", image.id));
   }
 }
 
