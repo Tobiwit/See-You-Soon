@@ -86,7 +86,7 @@ export function ItemCard({ item, slot, onOpen }: { item: WishItem; slot: BentoSl
       {item.image ? (
         <>
           <span className={s.cardImg}>
-            <Photo image={item.image} alt="" />
+            <Photo saver image={item.image} alt="" />
           </span>
           <span className={s.cardShade} aria-hidden />
           <span className={s.cardText} aria-hidden>
@@ -120,7 +120,7 @@ export function ItemRow({ item, onOpen }: { item: WishItem; onOpen: () => void }
   return (
     <button type="button" className={s.row} onClick={onOpen} data-visited={item.visited || undefined}>
       <span className={s.rowThumb}>
-        {item.image ? <Photo image={item.image} alt="" /> : <FallbackArt item={item} size="row" />}
+        {item.image ? <Photo saver image={item.image} alt="" /> : <FallbackArt item={item} size="row" />}
       </span>
       <span className={s.rowMain}>
         <span className={s.rowTitle}>{item.title}</span>

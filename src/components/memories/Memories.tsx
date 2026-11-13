@@ -123,7 +123,7 @@ export function Memories() {
                   <button key={`v-${e.id}`} type="button" className={s.entry} onClick={() => open({ kind: "item", id: e.id })}>
                     {e.image && (
                       <span className={s.entryImg}>
-                        <Photo image={e.image} alt={e.title} />
+                        <Photo saver image={e.image} alt={e.title} />
                       </span>
                     )}
                     <span className={s.entryText}>
@@ -155,7 +155,7 @@ function MiniPostcard({ postcard: p, me, onOpen }: { postcard: Postcard; me: str
     >
       <span className={s.miniFace}>
         {p.image ? (
-          <Photo image={p.image} alt="" />
+          <Photo saver image={p.image} alt="" />
         ) : (
           <span className={s.miniType} aria-hidden>
             <span className="display">{p.title || "Postcard"}</span>
@@ -176,7 +176,7 @@ function PostcardFront({ postcard: p, me, onOpen }: { postcard: Postcard; me: st
     <button type="button" className={s.card} onClick={onOpen} aria-label={`Postcard from ${from}${p.title ? `: ${p.title}` : ""}${unread ? ", unread" : ""}`}>
       <span className={s.cardFace}>
         {p.image ? (
-          <Photo image={p.image} alt="" />
+          <Photo saver image={p.image} alt="" />
         ) : (
           <span className={s.cardType} aria-hidden>
             <span className="display">{p.title || `From ${from}`}</span>

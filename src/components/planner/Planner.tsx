@@ -288,7 +288,7 @@ function MiniCard({ item, lifted }: { item: WishItem; lifted?: boolean }) {
   return (
     <span className={s.tile} data-lifted={lifted || undefined} data-visited={item.visited || undefined}>
       <span className={s.tileSquare}>
-        {item.image ? <Photo image={item.image} alt="" /> : <FallbackArt item={item} size="xs" />}
+        {item.image ? <Photo saver image={item.image} alt="" /> : <FallbackArt item={item} size="xs" />}
         {item.visited && <span className={s.tileCheck}>✓</span>}
       </span>
       <span className={s.tileTitle}>{item.title}</span>
@@ -363,7 +363,7 @@ function DrawerCard({ item, onTap }: { item: WishItem; onTap: () => void }) {
       aria-roledescription="Draggable idea"
       aria-label={`${item.title}. Tap to choose a day, or hold and drag onto a day.`}
     >
-      <span className={s.dcardImg}>{item.image ? <Photo image={item.image} alt="" /> : <FallbackArt item={item} size="m" />}</span>
+      <span className={s.dcardImg}>{item.image ? <Photo saver image={item.image} alt="" /> : <FallbackArt item={item} size="m" />}</span>
       <span className={s.dcardTitle}>{item.title}</span>
       <span className={s.dcardMeta}>{item.placeName}</span>
     </button>

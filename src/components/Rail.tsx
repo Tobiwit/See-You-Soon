@@ -89,12 +89,12 @@ export function Rail() {
           type="button"
           className={`icon-btn ${s.railTool} ${s.cloud}`}
           aria-pressed={!low}
-          aria-label={low ? "Low data mode — load photos in full quality" : "Photos in full quality — switch to low data mode"}
+          aria-label={low ? "Low data mode — load idea and postcard photos in full quality" : "Photos in full quality — switch to low data mode"}
           data-full={!low || undefined}
           onClick={() => {
             if (showHint) closeHint();
             setLowData(!low);
-            toast(low ? "Loading photos in full quality." : "Low data mode: photos stay small.");
+            toast(low ? "Loading photos in full quality." : "Low data mode: idea and postcard photos stay small.");
           }}
         >
           <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden>

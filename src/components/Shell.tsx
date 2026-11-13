@@ -5,6 +5,9 @@ import { useMe } from "@/lib/session";
 import { useSpace } from "@/lib/space";
 import { MOOD_ANNOUNCE_DELAY_MS } from "@/config/app";
 import { announceMood, markEventSeen } from "@/lib/actions";
+import { useLowData } from "@/lib/data-mode";
+import { backfillTinies } from "@/lib/images";
+import type { ImageRef } from "@/lib/types";
 import { useUI } from "./ui/ui-state";
 import { Rail } from "./Rail";
 import { HeartMark } from "./ui/HeartMark";
@@ -22,6 +25,7 @@ export function Shell() {
   const space = useSpace();
   const pendingLink = useRef<string | null>(null);
   useMoodAnnouncer();
+  useTinyBackfill();
 
   // Always open on the cover.
   useEffect(() => {
@@ -128,6 +132,24 @@ function SyncBar() {
  * When my mood changed and then stayed put for MOOD_ANNOUNCE_DELAY_MS, announce it once.
  * Also catches up after the app was closed before the delay ran out.
  */
+/** In full-quality mode, quietly create missing previews for idea and postcard photos. */
+function useTinyBackfill() {
+  const { items, postcards, sync } = useSpace();
+  const low = useLowData();
+  useEffect(() => {
+    if (low || sync !== "online") return;
+    const refs: ImageRef[] = [];
+    for (const it of items) {
+      if (it.image) refs.push(it.image);
+      if (it.visitImage) refs.push(it.visitImage);
+    }
+    for (const p of postcards) if (p.image) refs.push(p.image);
+    // Give the visible photos a head start before working through the rest.
+    const t = setTimeout(() => void backfillTinies(refs), 4000);
+    return () => clearTimeout(t);
+  }, [low, sync, items, postcards]);
+}
+
 function useMoodAnnouncer() {
   const { key: me } = useMe();
   const { moods, sync } = useSpace();

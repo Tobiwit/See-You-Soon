@@ -63,7 +63,7 @@ export function VisitSheet({ id }: { id: string }) {
         <ImagePicker
           value={image}
           onChange={setImage}
-          existing={item.visitImage ? <Photo image={item.visitImage} variant="full" alt="Current memory photo" eager /> : undefined}
+          existing={item.visitImage ? <Photo saver image={item.visitImage} variant="full" alt="Current memory photo" eager /> : undefined}
         />
       </div>
       {error && (

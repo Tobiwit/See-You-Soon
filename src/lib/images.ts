@@ -1,6 +1,18 @@
 "use client";
 
-import { collection, doc, getDoc, onSnapshot, serverTimestamp, setDoc } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocsFromCache,
+  onSnapshot,
+  query,
+  serverTimestamp,
+  setDoc,
+  Timestamp,
+  where,
+  type QueryDocumentSnapshot,
+} from "firebase/firestore";
 import { SPACE_ID, type PersonKey } from "@/config/app";
 import { fb } from "./firebase";
 import type { ImageRef } from "./types";
@@ -159,21 +171,66 @@ export function subscribeTinies(l: () => void) {
 }
 export const tinyVersionSnapshot = () => tinyVersion;
 
-/** Starts syncing tiny previews (called once the space is open). Returns an unsubscribe. */
+/**
+ * Starts syncing tiny previews (called once the space is open). Previews already on the
+ * phone are read from the offline cache; only ones created since then are fetched, so each
+ * preview is downloaded once. Returns an unsubscribe.
+ */
 export function startTinySync(me: PersonKey) {
   tinyAuthor = me;
-  return onSnapshot(
-    collection(fb().db, "spaces", SPACE_ID, "tinies"),
-    (s) => {
-      for (const d of s.docs) {
-        const data = d.get("data");
-        if (typeof data === "string") tinies.set(d.id, data);
-      }
-      tiniesReady = true;
-      emitTinies();
-    },
-    () => {},
-  );
+  const col = collection(fb().db, "spaces", SPACE_ID, "tinies");
+  let stopped = false;
+  let unsub = () => {};
+  let latest = 0;
+  const take = (d: QueryDocumentSnapshot) => {
+    const data = d.get("data");
+    if (typeof data === "string") tinies.set(d.id, data);
+    const t = d.get("createdAt");
+    if (t instanceof Timestamp) latest = Math.max(latest, t.toMillis());
+  };
+
+  void getDocsFromCache(col)
+    .then((snap) => {
+      snap.docs.forEach(take);
+      if (snap.size) emitTinies();
+    })
+    .catch(() => {})
+    .then(() => {
+      if (stopped) return;
+      // An hour of overlap covers previews the other phone saved while this one was offline.
+      const q = latest ? query(col, where("createdAt", ">", Timestamp.fromMillis(latest - 3_600_000))) : col;
+      unsub = onSnapshot(
+        q,
+        (s) => {
+          s.docs.forEach(take);
+          tiniesReady = true;
+          emitTinies();
+        },
+        () => {},
+      );
+    });
+
+  return () => {
+    stopped = true;
+    unsub();
+  };
+}
+
+/**
+ * Fills in previews for photos uploaded before previews existed. Runs only while photos are
+ * in full quality: it loads each missing photo's small version once and shrinks it.
+ */
+export async function backfillTinies(refs: ImageRef[]) {
+  for (const ref of refs) {
+    if (!tiniesReady) return;
+    if (ref.kind !== "upload" || tinies.has(ref.id) || tinyAttempted.has(ref.id)) continue;
+    try {
+      const data = memory.get(`thumb:${ref.id}`) ?? (await loadImage(ref, "thumb"));
+      await ensureTiny(ref.id, data);
+    } catch {
+      tinyAttempted.add(ref.id); // photo gone — don't retry this session
+    }
+  }
 }
 
 /** The low-data stand-in for a photo: a synced tiny preview, or a very small Unsplash size. */

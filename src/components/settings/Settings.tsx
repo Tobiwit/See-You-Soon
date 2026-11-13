@@ -563,7 +563,8 @@ function DataSaving() {
         <span>Start in low data mode</span>
       </label>
       <p className="meta">
-        Photos show as small, blurred previews until you tap the cloud in the side bar. Only this phone is affected — it can&apos;t tell
+        Idea and postcard photos show as small, blurred previews until you tap the cloud in the side bar. The cover and mood pictures always
+        load. Only this phone is affected — it can&apos;t tell
         Wi-Fi from mobile data, so it&apos;s up to you.
       </p>
     </section>

@@ -51,7 +51,7 @@ export function PostcardView({ id }: { id: string }) {
         >
           <span className={s.front} aria-hidden={back}>
             {p.image ? (
-              <Photo image={p.image} variant="full" alt={p.title || "Postcard photo"} eager />
+              <Photo saver image={p.image} variant="full" alt={p.title || "Postcard photo"} eager />
             ) : (
               <span className={s.cardType}>
                 <span className="display">{p.title || `From ${from}`}</span>

@@ -9,9 +9,9 @@ import s from "./ui.module.css";
 /**
  * Lazy photo: only fetches the (private) image document once it is near the
  * viewport. Renders nothing visual itself while loading — the parent provides
- * the background so there's no layout jump. In low data mode it shows a tiny,
- * blurred preview instead and downloads nothing (unless the photo is already
- * in memory from earlier in this session).
+ * the background so there's no layout jump. With `saver` (idea and postcard
+ * photos), low data mode shows a tiny, blurred preview instead and downloads
+ * nothing (unless the photo is already in memory from earlier in this session).
  */
 export function Photo(props: PhotoProps) {
   const k = props.image.kind === "upload" ? props.image.id : props.image.url;
@@ -24,6 +24,8 @@ interface PhotoProps {
   alt: string;
   className?: string;
   eager?: boolean;
+  /** Idea and postcard photos: held back in low data mode (tiny preview instead). */
+  saver?: boolean;
   onError?: () => void;
 }
 
@@ -33,12 +35,13 @@ function PhotoInner({
   alt,
   className,
   eager = false,
+  saver = false,
   onError,
 }: PhotoProps) {
   const [src, setSrc] = useState<string | null>(() => imageSrcSync(image, variant));
   const [failed, setFailed] = useState(false);
   const holder = useRef<HTMLSpanElement>(null);
-  const low = useLowData();
+  const low = useLowData() && saver;
   useSyncExternalStore(subscribeTinies, tinyVersionSnapshot, tinyVersionSnapshot);
   const tiny = low && !src ? tinySrc(image) : null;
   useEffect(() => {

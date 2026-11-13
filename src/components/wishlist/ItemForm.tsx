@@ -261,7 +261,7 @@ function ImageChooser({
   const [searching, setSearching] = useState(false);
   const preview =
     value.t === "keep" && original?.image ? (
-      <Photo image={original.image} alt="Current photo" variant="full" eager />
+      <Photo saver image={original.image} alt="Current photo" variant="full" eager />
     ) : value.t === "remote" ? (
       // eslint-disable-next-line @next/next/no-img-element
       <img src={value.img.thumb} alt={value.img.alt || "Chosen photo"} />

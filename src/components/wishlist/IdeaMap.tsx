@@ -416,7 +416,7 @@ export function IdeaMap() {
                         aria-label={`${it.title}, ${it.placeName}${it.visited ? ", visited" : ""}`}
                         title={it.title}
                       >
-                        {it.image ? <Photo image={it.image} alt="" /> : <FallbackArt item={it} size="xs" />}
+                        {it.image ? <Photo saver image={it.image} alt="" /> : <FallbackArt item={it} size="xs" />}
                         {it.visited && (
                           <span className={s.tick} aria-hidden>
                             ✓

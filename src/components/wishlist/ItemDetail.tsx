@@ -87,7 +87,7 @@ export function ItemDetail({ id }: { id: string }) {
   return (
     <Sheet title={item.title} hideTitle onClose={close} full>
       <div className={s.detailMedia}>
-        {item.image ? <Photo image={item.image} variant="full" alt={item.title} eager /> : <FallbackArt item={item} size="l" />}
+        {item.image ? <Photo saver image={item.image} variant="full" alt={item.title} eager /> : <FallbackArt item={item} size="l" />}
       </div>
       <Credit image={item.image} />
 
@@ -168,7 +168,7 @@ export function ItemDetail({ id }: { id: string }) {
           <p className="eyebrow">The memory</p>
           {item.visitImage && (
             <div className={s.memoryImg}>
-              <Photo image={item.visitImage} variant="full" alt={`Memory of ${item.title}`} />
+              <Photo saver image={item.visitImage} variant="full" alt={`Memory of ${item.title}`} />
             </div>
           )}
           {item.visitNote && <p className={s.memoryNote}>{item.visitNote}</p>}
