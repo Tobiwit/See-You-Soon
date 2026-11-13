@@ -24,6 +24,8 @@ interface PhotoProps {
   alt: string;
   className?: string;
   eager?: boolean;
+  /** Read the photo from the phone's offline copy first (photos never change after upload). */
+  cached?: boolean;
   /** Idea and postcard photos: held back in low data mode (tiny preview instead). */
   saver?: boolean;
   onError?: () => void;
@@ -35,6 +37,7 @@ function PhotoInner({
   alt,
   className,
   eager = false,
+  cached = false,
   saver = false,
   onError,
 }: PhotoProps) {
@@ -43,12 +46,15 @@ function PhotoInner({
   const holder = useRef<HTMLSpanElement>(null);
   const low = useLowData() && saver;
   useSyncExternalStore(subscribeTinies, tinyVersionSnapshot, tinyVersionSnapshot);
-  const tiny = low && !src ? tinySrc(image) : null;
+  // Unsplash photos always "have" a src (it's just a URL), so in low data mode ignore it —
+  // otherwise they'd download in full anyway. Uploaded photos already in memory are free to show.
+  const shown = low && image.kind === "unsplash" ? null : src;
+  const tiny = low && !shown ? tinySrc(image) : null;
   useEffect(() => {
     if (low) return; // wait for the cloud button
     let alive = true;
     const load = () =>
-      loadImage(image, variant)
+      loadImage(image, variant, cached)
         .then((u) => alive && setSrc(u))
         .catch(() => {
           if (!alive) return;
@@ -85,7 +91,7 @@ function PhotoInner({
       </span>
     );
   }
-  if (!src && low) {
+  if (!shown && low) {
     return tiny ? (
       // eslint-disable-next-line @next/next/no-img-element
       <img src={tiny} alt={alt} className={`${s.photo} ${s.photoTiny} ${className ?? ""}`} draggable={false} referrerPolicy="no-referrer" />
@@ -93,11 +99,11 @@ function PhotoInner({
       <span className={`${s.photoLow} ${className ?? ""}`} role="img" aria-label={alt || undefined} aria-hidden={!alt || undefined} />
     );
   }
-  if (!src) return <span ref={holder} className={`${s.photoPending} ${className ?? ""}`} aria-hidden />;
+  if (!shown) return <span ref={holder} className={`${s.photoPending} ${className ?? ""}`} aria-hidden />;
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src={src}
+      src={shown}
       alt={alt}
       className={`${s.photo} ${className ?? ""}`}
       loading={eager ? "eager" : "lazy"}

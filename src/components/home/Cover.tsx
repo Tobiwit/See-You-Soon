@@ -83,7 +83,7 @@ export function Cover() {
 
       <figure className={s.coverPhoto}>
         {config.coverImageId ? (
-          <Photo image={{ kind: "upload", id: config.coverImageId, w: 0, h: 0 }} variant="full" alt={`${PEOPLE.alex.name} and ${PEOPLE.toby.name}`} eager />
+          <Photo image={{ kind: "upload", id: config.coverImageId, w: 0, h: 0 }} variant="full" alt={`${PEOPLE.alex.name} and ${PEOPLE.toby.name}`} eager cached />
         ) : (
           <div className={s.coverFallback} aria-hidden>
             {me === OWNER && <span>Add a photo of the two of you in Settings</span>}

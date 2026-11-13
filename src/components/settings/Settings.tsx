@@ -225,7 +225,7 @@ function CoverSetting() {
         onChange={setImg}
         aspect="3 / 4"
         label="Choose a cover photo"
-        existing={config.coverImageId ? <Photo image={{ kind: "upload", id: config.coverImageId, w: 0, h: 0 }} variant="full" alt="Current cover" eager /> : undefined}
+        existing={config.coverImageId ? <Photo image={{ kind: "upload", id: config.coverImageId, w: 0, h: 0 }} variant="full" alt="Current cover" eager cached /> : undefined}
       />
       <div className={s.row}>
         {img && (

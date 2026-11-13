@@ -4,6 +4,7 @@ import {
   collection,
   doc,
   getDoc,
+  getDocFromCache,
   getDocsFromCache,
   onSnapshot,
   query,
@@ -116,14 +117,25 @@ export function imageSrcSync(ref: ImageRef | null | undefined, variant: "thumb" 
   return memory.get(`${variant}:${ref.id}`) ?? memory.get(`${other}:${ref.id}`) ?? null;
 }
 
-export function loadImage(ref: ImageRef, variant: "thumb" | "full"): Promise<string> {
+/**
+ * `cacheFirst` reads the photo from the offline cache before asking the server. Photos never
+ * change after upload, so this only skips a repeat download (used for the cover).
+ */
+export function loadImage(ref: ImageRef, variant: "thumb" | "full", cacheFirst = false): Promise<string> {
   if (ref.kind === "unsplash") return Promise.resolve(variant === "thumb" ? ref.thumb : ref.url);
   const key = `${variant}:${ref.id}`;
   const hit = memory.get(key);
   if (hit) return Promise.resolve(hit);
   let p = inflight.get(key);
   if (!p) {
-    p = getDoc(doc(fb().db, "spaces", SPACE_ID, variant === "thumb" ? "thumbs" : "images", ref.id))
+    const r = doc(fb().db, "spaces", SPACE_ID, variant === "thumb" ? "thumbs" : "images", ref.id);
+    const fromServer = () => getDoc(r);
+    const read = cacheFirst
+      ? getDocFromCache(r)
+          .then((snap) => (typeof snap.get("data") === "string" ? snap : fromServer()))
+          .catch(fromServer)
+      : fromServer();
+    p = read
       .then((snap) => {
         const data = snap.get("data");
         if (typeof data !== "string") throw new Error("Photo not found");
