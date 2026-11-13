@@ -26,6 +26,25 @@ export function setLowDataOnLaunch(on: boolean) {
   }
 }
 
+const HINT_KEY = "sys.lowDataHintSeen";
+
+/** The one-time "you're in low data mode" hint, per device. */
+export function lowDataHintSeen(): boolean {
+  try {
+    return localStorage.getItem(HINT_KEY) === "1";
+  } catch {
+    return true;
+  }
+}
+
+export function markLowDataHintSeen() {
+  try {
+    localStorage.setItem(HINT_KEY, "1");
+  } catch {
+    /* ignore */
+  }
+}
+
 let low: boolean | null = null;
 const listeners = new Set<() => void>();
 
