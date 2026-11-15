@@ -304,11 +304,11 @@ function MoodPictures() {
     }
   }
 
-  async function remove(tier: MoodId, id: string, imageId: string) {
+  async function remove(tier: MoodId, id: string) {
     if (!window.confirm("Remove this picture?")) return;
     setBusy(tier);
     try {
-      await removeMoodPhoto(id, imageId);
+      await removeMoodPhoto(id);
     } catch {
       toast("Couldn't remove it.", "error");
     } finally {
@@ -347,7 +347,7 @@ function MoodPictures() {
                   type="button"
                   className={s.bgRemove}
                   aria-label={`Remove the picture for ${m.label}`}
-                  onClick={() => void remove(m.id, photo.id, photo.imageId)}
+                  onClick={() => void remove(m.id, photo.id)}
                 >
                   ×
                 </button>

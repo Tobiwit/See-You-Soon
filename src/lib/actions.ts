@@ -2,6 +2,7 @@
 
 import {
   collection,
+  deleteDoc,
   deleteField,
   doc,
   getDoc,
@@ -536,26 +537,22 @@ export async function setCover(me: PersonKey, img: PreparedImage | null, previou
 export const moodPhotoId = (by: PersonKey, tier: MoodId) => `${by}_${tier}`;
 
 /**
- * One picture per uploader and mood tier, stored at moodPhotos/{me}_{tier}.
- * Replaces (and cleans up) any previous one, including an older doc stored under another id.
+ * One picture per uploader and mood tier, stored at moodPhotos/{me}_{tier}. Points the tier at
+ * the new photo — the old photo stays in `images` (mood pictures are never deleted, so earlier
+ * ones remain in Toby's gallery). An older doc kept under another id is unlinked.
  */
 export async function setMoodPhoto(me: PersonKey, tier: MoodId, img: PreparedImage, previous: { id: string; imageId: string } | null) {
   const batch = writeBatch(fb().db);
   const id = moodPhotoId(me, tier);
   putImage(batch, img, me);
   batch.set(ref("moodPhotos", id), { imageId: img.id, tier, by: me, createdAt: serverTimestamp() });
-  if (previous) {
-    if (previous.id !== id) batch.delete(ref("moodPhotos", previous.id));
-    dropImage(batch, { kind: "upload", id: previous.imageId, w: 0, h: 0 });
-  }
+  if (previous && previous.id !== id) batch.delete(ref("moodPhotos", previous.id));
   await batch.commit();
 }
 
-export async function removeMoodPhoto(id: string, imageId: string) {
-  const batch = writeBatch(fb().db);
-  batch.delete(ref("moodPhotos", id));
-  dropImage(batch, { kind: "upload", id: imageId, w: 0, h: 0 });
-  await batch.commit();
+/** Unlinks the picture from its mood tier; the photo itself stays stored. */
+export async function removeMoodPhoto(id: string) {
+  await deleteDoc(ref("moodPhotos", id));
 }
 
 export async function savePushSubscription(me: PersonKey, sub: PushSubscriptionJSON | null) {
