@@ -13,6 +13,7 @@ import { MomentForm, MomentView } from "./memories/Moments";
 import { DailyArchive, DailySheet } from "./memories/Daily";
 import { IdeaMap } from "./wishlist/IdeaMap";
 import { Settings } from "./settings/Settings";
+import { Gallery } from "./settings/Gallery";
 
 /** Renders the top-most sheet of the stack. */
 export function SheetHost() {
@@ -47,6 +48,8 @@ export function SheetHost() {
       return <DailyArchive key={k} />;
     case "idea-map":
       return <IdeaMap key={k} />;
+    case "gallery":
+      return <Gallery key={k} />;
     case "settings":
       return <Settings key={k} />;
   }

@@ -16,6 +16,7 @@ export type SheetSpec =
   | { kind: "daily"; day?: string }
   | { kind: "daily-archive" }
   | { kind: "idea-map" }
+  | { kind: "gallery" }
   | { kind: "settings" };
 
 export type SectionId = "home" | "wishlist" | "planner" | "memories";

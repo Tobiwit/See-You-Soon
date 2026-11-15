@@ -50,6 +50,7 @@ export function Settings() {
       <DataSaving />
       {me.key === OWNER ? (
         <>
+          <GalleryEntry />
           <CoverSetting />
           <TripSettings key={JSON.stringify(pickTrip(config))} />
           <RouteSettings key={JSON.stringify(config.route)} />
@@ -567,6 +568,20 @@ function DataSaving() {
         load. Only this phone is affected — it can&apos;t tell
         Wi-Fi from mobile data, so it&apos;s up to you.
       </p>
+    </section>
+  );
+}
+
+/** Owner only: open the gallery of every uploaded photo. */
+function GalleryEntry() {
+  const { open } = useUI();
+  return (
+    <section className={s.block}>
+      <p className="eyebrow">Gallery</p>
+      <p>Every photo either of you has uploaded, newest first.</p>
+      <button type="button" className="btn" onClick={() => open({ kind: "gallery" })}>
+        Open gallery
+      </button>
     </section>
   );
 }
