@@ -257,16 +257,33 @@ export async function setVisited(
 
 export async function saveTravel(
   me: PersonKey,
-  input: { id?: string; date: string; from: string; to: string; transport: string },
+  input: {
+    id?: string;
+    date: string;
+    from: string;
+    to: string;
+    transport: string;
+    placement: "between" | "day";
+    slot: number;
+    mode: "train" | "plane" | "bus" | "other";
+  },
 ) {
   const data = {
     date: input.date,
     from: input.from.trim().slice(0, 80),
     to: input.to.trim().slice(0, 80),
     transport: input.transport.trim().slice(0, 120),
+    placement: input.placement,
+    slot: Math.max(0, Math.round(input.slot)),
+    mode: input.mode,
   };
   if (input.id) await updateDoc(ref("travel", input.id), { ...data, updatedAt: serverTimestamp() });
   else await setDoc(ref("travel"), { ...data, by: me, createdAt: serverTimestamp() });
+}
+
+/** Moves a during-the-day commute above or below the day's ideas. */
+export async function moveCommute(id: string, slot: number) {
+  await updateDoc(ref("travel", id), { slot: Math.max(0, Math.round(slot)), updatedAt: serverTimestamp() });
 }
 
 export async function deleteTravel(id: string) {

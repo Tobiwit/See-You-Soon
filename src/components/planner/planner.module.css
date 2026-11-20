@@ -59,19 +59,62 @@
   color: var(--blush-ink);
 }
 
-.commuteLine button {
+.commuteBtn {
   display: flex;
   align-items: baseline;
   flex-wrap: wrap;
   gap: 4px 8px;
   width: 100%;
-  padding: 16px var(--gutter) 8px;
   border: 0;
   background: transparent;
   text-align: left;
 }
 
+.commuteLine .commuteBtn {
+  padding: 16px var(--gutter) 8px;
+}
+
+/* A commute during a day: a full-width line between that day's tiles. */
+.dayCommute {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 2px 0;
+  padding: 6px 0;
+  border-top: 1px dashed var(--blush-ink);
+  border-bottom: 1px dashed var(--blush-ink);
+}
+
+.dayCommute .commuteBtn {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+}
+
+.dayCommute .commuteRoute {
+  font-size: 17px;
+}
+
+.commuteMove {
+  display: flex;
+  flex: none;
+}
+
+.commuteMove button {
+  width: 32px;
+  height: 32px;
+}
+
+.commuteMove button:disabled {
+  opacity: 0.3;
+}
+
 .commuteKind {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  align-self: center;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.16em;
@@ -480,4 +523,37 @@
   font-size: 11px;
   color: var(--muted);
   letter-spacing: 0.04em;
+}
+
+/* Segmented choices in the commute form. */
+.segRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.seg {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1.5px solid var(--ink);
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 14px;
+}
+
+.seg[aria-pressed="true"] {
+  background: var(--cobalt);
+  border-color: var(--cobalt);
+  color: var(--paper);
+}
+
+.fieldset {
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  margin-left: 0;
+  margin-right: 0;
 }

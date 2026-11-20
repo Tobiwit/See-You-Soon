@@ -14,7 +14,7 @@ import {
   type DragEndEvent,
   type DragStartEvent,
 } from "@dnd-kit/core";
-import { assignItem } from "@/lib/actions";
+import { assignItem, moveCommute } from "@/lib/actions";
 import { formatDay } from "@/lib/dates";
 import { useMe } from "@/lib/session";
 import { useSpace } from "@/lib/space";
@@ -22,6 +22,7 @@ import type { FixedEvent, TravelEvent, WishItem } from "@/lib/types";
 import { Photo } from "../ui/Photo";
 import { useUI } from "../ui/ui-state";
 import { FallbackArt } from "../wishlist/ItemCard";
+import { CommuteIcon, MODE_LABEL } from "./CommuteIcon";
 import { useDayContext } from "./plan-utils";
 import s from "./planner.module.css";
 
@@ -91,8 +92,13 @@ export function Planner() {
 
   const fixedByDay = new Map<string, FixedEvent[]>();
   for (const f of fixed) fixedByDay.set(f.date, [...(fixedByDay.get(f.date) ?? []), f]);
+  // Between-days commutes sit before their day; during-a-day ones live inside it.
   const travelByDay = new Map<string, TravelEvent[]>();
-  for (const t of travel) travelByDay.set(t.date, [...(travelByDay.get(t.date) ?? []), t]);
+  const inDay = new Map<string, TravelEvent[]>();
+  for (const t of travel) {
+    const m = t.placement === "day" ? inDay : travelByDay;
+    m.set(t.date, [...(m.get(t.date) ?? []), t]);
+  }
 
   return (
     <section id="planner" className={s.section} aria-labelledby="planner-h">
@@ -132,14 +138,7 @@ export function Planner() {
                 {/* A commute sits between days, where the city changes. */}
                 {moves.map((t) => (
                   <li key={t.id} className={s.commuteLine}>
-                    <button type="button" onClick={() => open({ kind: "travel", id: t.id })}>
-                      <span className={s.commuteKind}>Commute</span>
-                      <span className={s.commuteRoute}>
-                        {t.from || "?"} <span aria-hidden>→</span>
-                        <span className="sr-only">to</span> {t.to}
-                      </span>
-                      {t.transport && <span className={s.commuteHow}>{t.transport}</span>}
-                    </button>
+                    <CommuteButton t={t} onOpen={() => open({ kind: "travel", id: t.id })} />
                   </li>
                 ))}
                 <DayRow
@@ -149,6 +148,8 @@ export function Planner() {
                   isPast={d < today}
                   fixed={fixedByDay.get(d) ?? []}
                   items={byDay.get(d) ?? []}
+                  commutes={inDay.get(d) ?? []}
+                  onOpenCommute={(id) => open({ kind: "travel", id })}
                   onOpenItem={(id) => open({ kind: "item", id })}
                   onOpenFixed={(id) => open({ kind: "fixed", id })}
                   dropping={dragging !== null}
@@ -188,6 +189,23 @@ export function Planner() {
   );
 }
 
+/** The route + mode of a commute: "🚆 Train  Hanoi → Sa Pa  Sleeper SE3". */
+function CommuteButton({ t, onOpen }: { t: TravelEvent; onOpen: () => void }) {
+  return (
+    <button type="button" className={s.commuteBtn} onClick={onOpen}>
+      <span className={s.commuteKind}>
+        <CommuteIcon mode={t.mode} size={13} />
+        {MODE_LABEL[t.mode]}
+      </span>
+      <span className={s.commuteRoute}>
+        {t.from || "?"} <span aria-hidden>→</span>
+        <span className="sr-only">to</span> {t.to}
+      </span>
+      {t.transport && <span className={s.commuteHow}>{t.transport}</span>}
+    </button>
+  );
+}
+
 function DayRow({
   day,
   index,
@@ -195,6 +213,8 @@ function DayRow({
   isPast,
   fixed,
   items,
+  commutes,
+  onOpenCommute,
   onOpenItem,
   onOpenFixed,
   dropping,
@@ -205,13 +225,84 @@ function DayRow({
   isPast: boolean;
   fixed: FixedEvent[];
   items: WishItem[];
+  commutes: TravelEvent[];
+  onOpenCommute: (id: string) => void;
   onOpenItem: (id: string) => void;
   onOpenFixed: (id: string) => void;
   dropping: boolean;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: `day:${day}` });
+  const { toast } = useUI();
   const label = formatDay(day, { weekday: "long", day: "numeric", month: "long" });
-  const empty = !fixed.length && !items.length;
+  const empty = !fixed.length && !items.length && !commutes.length;
+
+  // Tiles in order (fixed anchors first), with during-the-day commutes slotted in between.
+  const tiles: ({ k: "fixed"; f: FixedEvent } | { k: "item"; it: WishItem })[] = [
+    ...fixed.map((f) => ({ k: "fixed" as const, f })),
+    ...items.map((it) => ({ k: "item" as const, it })),
+  ];
+  const placed = commutes
+    .map((t) => ({ t, at: Math.min(tiles.length, Math.max(0, t.slot)) }))
+    .sort((a, b) => a.at - b.at || (a.t.createdAt?.getTime() ?? 0) - (b.t.createdAt?.getTime() ?? 0));
+
+  async function move(t: TravelEvent, at: number, dir: -1 | 1) {
+    try {
+      await moveCommute(t.id, Math.min(tiles.length, Math.max(0, at + dir)));
+    } catch {
+      toast("Couldn't move the commute.", "error");
+    }
+  }
+
+  const renderTile = (x: (typeof tiles)[number]) =>
+    x.k === "fixed" ? (
+      <button
+        key={x.f.id}
+        type="button"
+        className={s.tile}
+        onClick={() => onOpenFixed(x.f.id)}
+        aria-label={`Fixed ${x.f.kind}: ${x.f.title}${x.f.note ? `. ${x.f.note}` : ""}`}
+      >
+        <span className={s.tileSquare} data-fixed aria-hidden>
+          <svg width="10" height="12" viewBox="0 0 9 11">
+            <rect x="0.5" y="4.5" width="8" height="6" fill="none" stroke="currentColor" />
+            <path d="M2 4.5V3a2.5 2.5 0 015 0v1.5" fill="none" stroke="currentColor" />
+          </svg>
+          <span className={s.fixedKind}>{x.f.kind === "arrival" ? "Arrival" : "Departure"}</span>
+          <span className={s.fixedCity}>{x.f.city}</span>
+        </span>
+        <span className={s.tileTitle} aria-hidden>
+          {x.f.title}
+        </span>
+      </button>
+    ) : (
+      <DraggableMini key={x.it.id} item={x.it} onTap={() => onOpenItem(x.it.id)} />
+    );
+
+  const body: React.ReactNode[] = [];
+  let cursor = 0;
+  for (const p of placed) {
+    while (cursor < p.at) body.push(renderTile(tiles[cursor++]));
+    body.push(
+      <div key={p.t.id} className={s.dayCommute}>
+        <CommuteButton t={p.t} onOpen={() => onOpenCommute(p.t.id)} />
+        <span className={s.commuteMove}>
+          <button type="button" className="icon-btn" aria-label="Move commute earlier" disabled={p.at === 0} onClick={() => void move(p.t, p.at, -1)}>
+            ↑
+          </button>
+          <button
+            type="button"
+            className="icon-btn"
+            aria-label="Move commute later"
+            disabled={p.at >= tiles.length}
+            onClick={() => void move(p.t, p.at, 1)}
+          >
+            ↓
+          </button>
+        </span>
+      </div>,
+    );
+  }
+  while (cursor < tiles.length) body.push(renderTile(tiles[cursor++]));
 
   return (
     <li
@@ -231,30 +322,7 @@ function DayRow({
         {isToday && <span className={s.todayTag}>Today</span>}
       </div>
       <div className={s.dayBody}>
-        {fixed.map((f) => (
-          <button
-            key={f.id}
-            type="button"
-            className={s.tile}
-            onClick={() => onOpenFixed(f.id)}
-            aria-label={`Fixed ${f.kind}: ${f.title}${f.note ? `. ${f.note}` : ""}`}
-          >
-            <span className={s.tileSquare} data-fixed aria-hidden>
-              <svg width="10" height="12" viewBox="0 0 9 11">
-                <rect x="0.5" y="4.5" width="8" height="6" fill="none" stroke="currentColor" />
-                <path d="M2 4.5V3a2.5 2.5 0 015 0v1.5" fill="none" stroke="currentColor" />
-              </svg>
-              <span className={s.fixedKind}>{f.kind === "arrival" ? "Arrival" : "Departure"}</span>
-              <span className={s.fixedCity}>{f.city}</span>
-            </span>
-            <span className={s.tileTitle} aria-hidden>
-              {f.title}
-            </span>
-          </button>
-        ))}
-        {items.map((it) => (
-          <DraggableMini key={it.id} item={it} onTap={() => onOpenItem(it.id)} />
-        ))}
+        {body}
         {isOver ? (
           <span className={s.dropHint}>Drop to plan it for {formatDay(day, { weekday: "short", day: "numeric" })}</span>
         ) : (

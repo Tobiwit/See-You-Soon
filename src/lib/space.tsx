@@ -224,6 +224,9 @@ export function SpaceProvider({ me, children }: { me: PersonKey; children: React
                   from: str(x.from),
                   to: str(x.to),
                   transport: str(x.transport),
+                  placement: x.placement === "day" ? ("day" as const) : ("between" as const),
+                  slot: num(x.slot),
+                  mode: x.mode === "train" || x.mode === "plane" || x.mode === "bus" ? x.mode : ("other" as const),
                   by: x.by,
                   createdAt: toDate(x.createdAt),
                 };

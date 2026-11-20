@@ -10,21 +10,19 @@ type Kind = "apart" | "travel" | "together";
 
 /** One block per calendar day, from the first day apart to the last day of the trip (inclusive). */
 export function TimeApart() {
-  const { config, travel } = useSpace();
+  const { config, fixed } = useSpace();
   const now = useNow(60_000);
   const ref = useReveal<HTMLDivElement>();
   const today = dayKeyInTz(now, config.timezone);
 
   const { days, total, elapsed, apartCount, togetherCount } = useMemo(() => {
     const keys = eachDay(config.separationStart, config.tripEnd);
-    const travelDays = new Set(travel.map((t) => t.date));
+    // Only the arrival and departure days count as travel days — commutes during the trip don't.
+    const arrival = fixed.find((f) => f.kind === "arrival")?.date ?? config.reunionDate;
+    const departure = fixed.find((f) => f.kind === "departure")?.date ?? config.tripEnd;
     const days = keys.map((k) => {
       const kind: Kind =
-        k < config.reunionDate
-          ? "apart"
-          : k === config.reunionDate || k === config.tripEnd || travelDays.has(k)
-            ? "travel"
-            : "together";
+        k < config.reunionDate ? "apart" : k === arrival || k === departure ? "travel" : "together";
       return { k, kind, past: k < today, isToday: k === today };
     });
     const total = keys.length;
@@ -36,7 +34,7 @@ export function TimeApart() {
       apartCount: days.filter((d) => d.kind === "apart").length,
       togetherCount: total - days.filter((d) => d.kind === "apart").length,
     };
-  }, [config.separationStart, config.tripEnd, config.reunionDate, travel, today]);
+  }, [config.separationStart, config.tripEnd, config.reunionDate, fixed, today]);
 
   if (!total) return null;
 

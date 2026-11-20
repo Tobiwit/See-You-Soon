@@ -7,7 +7,10 @@ import { useMe } from "@/lib/session";
 import { useSpace } from "@/lib/space";
 import { Confirm, Sheet } from "../ui/Sheet";
 import { useUI } from "../ui/ui-state";
+import type { CommuteMode } from "@/lib/types";
+import { COMMUTE_MODES, CommuteIcon, MODE_LABEL } from "./CommuteIcon";
 import { useDayContext } from "./plan-utils";
+import s from "./planner.module.css";
 
 export function TravelForm({ id, date: initialDate }: { id?: string; date?: string }) {
   const { travel, places, fixed, sync } = useSpace();
@@ -21,6 +24,8 @@ export function TravelForm({ id, date: initialDate }: { id?: string; date?: stri
   const [from, setFrom] = useState(existing?.from ?? cityByDay.get(addDays(defaultDate, -1)) ?? cityByDay.get(defaultDate) ?? "");
   const [to, setTo] = useState(existing?.to ?? "");
   const [transport, setTransport] = useState(existing?.transport ?? "");
+  const [placement, setPlacement] = useState<"between" | "day">(existing?.placement ?? "between");
+  const [mode, setMode] = useState<CommuteMode>(existing?.mode ?? "train");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [touched, setTouched] = useState(false);
@@ -46,7 +51,9 @@ export function TravelForm({ id, date: initialDate }: { id?: string; date?: stri
     setBusy(true);
     setError(null);
     try {
-      await saveTravel(me, { id: existing?.id, date, from, to, transport });
+      // A new during-the-day commute starts after the day's ideas; move it with the arrows.
+      const slot = existing && existing.placement === "day" && existing.date === date ? existing.slot : 99;
+      await saveTravel(me, { id: existing?.id, date, from, to, transport, placement, slot, mode });
       toast(existing ? "Commute updated." : `Commute to ${to.trim()} added.`, "ok");
       close();
     } catch {
@@ -85,6 +92,22 @@ export function TravelForm({ id, date: initialDate }: { id?: string; date?: stri
             <option key={c} value={c} />
           ))}
         </datalist>
+        <fieldset className={`field ${s.fieldset}`}>
+          <legend className="label">Where it goes</legend>
+          <div className={s.segRow}>
+            <button type="button" className={s.seg} aria-pressed={placement === "between"} onClick={() => setPlacement("between")}>
+              Between days
+            </button>
+            <button type="button" className={s.seg} aria-pressed={placement === "day"} onClick={() => setPlacement("day")}>
+              During a day
+            </button>
+          </div>
+          <span className="hint">
+            {placement === "between"
+              ? "Shown as a line between the day before and this day."
+              : "Shown inside the day — move it above or below the ideas with the arrows."}
+          </span>
+        </fieldset>
         <div className="field">
           <label htmlFor="t-date">
             Day <span className="req">required</span>
@@ -125,9 +148,27 @@ export function TravelForm({ id, date: initialDate }: { id?: string; date?: stri
           {touched && !to.trim() && <span className="err">Where are you going?</span>}
           <span className="hint">From this day on, the planner shows you in this city.</span>
         </div>
+        <fieldset className={`field ${s.fieldset}`}>
+          <legend className="label">How</legend>
+          <div className={s.segRow}>
+            {COMMUTE_MODES.map((m) => (
+              <button key={m} type="button" className={s.seg} aria-pressed={mode === m} onClick={() => setMode(m)}>
+                <CommuteIcon mode={m} size={14} />
+                {MODE_LABEL[m]}
+              </button>
+            ))}
+          </div>
+        </fieldset>
         <div className="field">
-          <label htmlFor="t-how">How</label>
-          <input id="t-how" className="input" value={transport} maxLength={120} onChange={(e) => setTransport(e.target.value)} placeholder="Train, flight, bus… (optional)" />
+          <label htmlFor="t-how">Details</label>
+          <input
+            id="t-how"
+            className="input"
+            value={transport}
+            maxLength={120}
+            onChange={(e) => setTransport(e.target.value)}
+            placeholder={mode === "train" ? "e.g. SE3, 22:00, cabin 4" : mode === "plane" ? "e.g. VN 163, 10:40" : mode === "bus" ? "e.g. Sapa Express, 07:00" : "Optional"}
+          />
         </div>
         {error && (
           <p className="notice error" role="alert">

@@ -51,12 +51,19 @@ export interface WishItem {
   pending?: boolean;
 }
 
+/** "other" = older commutes saved before a type existed. */
+export type CommuteMode = "train" | "plane" | "bus" | "other";
+
 export interface TravelEvent {
   id: string;
   date: string;
   from: string;
   to: string;
   transport: string;
+  /** "between": a line before `date` (as before). "day": inside `date`, after `slot` tiles. */
+  placement: "between" | "day";
+  slot: number;
+  mode: CommuteMode;
   by: PersonKey;
   createdAt: When;
 }
